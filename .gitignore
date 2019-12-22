@@ -1,0 +1,5 @@
+# All the mp3 files usedd for testing
+*.mp3
+testPickle/
+testBeat/
+chunks/
