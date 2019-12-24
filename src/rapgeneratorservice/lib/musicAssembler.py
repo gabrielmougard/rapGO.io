@@ -279,8 +279,8 @@ class MusicAssembler:
 BEAT_PATH  = "testBeat/"
 VOICE_PATH = "testVoice/"
 
-ma = MusicAssembler(BEAT_PATH+"song_0dcf4fae-65a9-403e-88e2-829215421c32.mp3",VOICE_PATH+"greatSpeech.mp3")
-#ma.getBeats()
-#ma.verse_detector()
-#ma.voice_splitter()
+ma = MusicAssembler(BEAT_PATH+"song_548ba4d4-64a3-4db1-ba2e-f9037c535932.mp3",VOICE_PATH+"greatSpeech.mp3")
+ma.getBeats()
+ma.verse_detector()
+ma.voice_splitter()
 ma.merger()
