@@ -178,7 +178,7 @@ class MusicAssembler:
         print("[VOICE_SPLITTER] "+str(len(chunks))+" chunks generated.")
         for chunk in chunks:
             self.chunks.append(chunk)
-        
+        print("BEFORE PICKLE DURATION : "+str(self.chunks[0].duration_seconds))
         with open("testPickle/chunks","wb") as f:
             pickle.dump(self.chunks, f)
         print("[VOICE_SPLITTER] voice splitting has ended.")
@@ -255,15 +255,22 @@ class MusicAssembler:
             c = self.chunks[chunkNumber]
             #Alignment
             endT = self.beatsDistribution[beatCounted]+c.duration_seconds
-            alignChunk, newBeatsCounted = alignment.align(c,endT,self.beatsDistribution,beatCounted) # after the MVP : use the self.beatsIntensity
+            #alignChunk, newBeatsCounted = alignment.align(c,endT,self.beatsDistribution,beatCounted) # after the MVP : use the self.beatsIntensity
+            newBeatsCounted = alignment.align(c,endT,self.beatsDistribution,beatCounted)
             startBeatCounted = beatCounted
             beatCounted += newBeatsCounted-beatCounted
             # leftChunkPart is a slice of the original chunk 
             # rightChunkPart is the "stretched"(slower or faster) complementary slice of the original chunk. 
-            mergedResult = alignment.overlay(mergedResult,alignChunk,startBeatCounted,beatCounted,self.beatsDistribution) # add the chunk to the beatsound
+            #mergedResult = alignment.overlay(mergedResult,alignChunk,startBeatCounted,beatCounted,self.beatsDistribution) # add the chunk to the beatsound
+            mergedResult = alignment.overlay(mergedResult, c, startBeatCounted, beatCounted, self.beatsDistribution) # add the chunk to the beatsound
             #Padding (padding means moving forward beatCounted )
             # for now, we'll choose a constant padding of 250ms
-            beatCounted += self.randomPadding
+            beatCounted += random.randint(2,5)
+            if beatCounted >= len(self.beatsDistribution):
+                print("EARLY break")
+                break
+            print("beats counted end loop : "+str(beatCounted))
+            chunkNumber += 1
 
         # final step : exportation of the result under the defined output file format
         self.__exportMergedSound(mergedResult)
