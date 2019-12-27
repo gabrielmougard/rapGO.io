@@ -1,0 +1,15 @@
+# This is a multi-node cluster meant to be used
+# for development purpose only.
+#
+# This configuration is a four node (three workers) cluster config
+# You can create the cluster with : `kind create cluster --config multinode-kind-cluster.yml`
+# If the command is successful, try `kubectl cluster-info --context kind-kind`. Yolu should have something like this :
+# ' Kubernetes master is running at https://127.0.0.1:44709 '
+# ' KubeDNS is running at https://127.0.0.1:44709/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy '
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+- role: worker
+- role: worker
+- role: worker
