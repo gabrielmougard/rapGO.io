@@ -1,56 +1,109 @@
 import os 
-from flask import Flask, flash, request, redirect, url_for
+import glob
+import fnmatch
+import random
+from flask import Flask, flash, request, redirect, url_for, jsonify
 from werkzeug.utils import secure_filename
 from lib.musicAssembler import MusicAssembler
+from google.cloud import storage
+import pickle 
+import threading
 
 UPLOAD_FOLDER = "/voiceTempStorage"
 ALLOWED_EXTENSION = {".mp3"}
-CEPHFS = False # if CephFS is enabled or not. In development mode, we don't use it.
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-def allowed_file(filename):
-    return '.' in filename and \
-        filename.rsplit('.',1)[1].lower() in ALLOWED_EXTENSION
+storage_client = storage.Client()
+BUCKET_NAME = 'rapgo-bucket-1'
+DATA_FOLDER = 'voiceTempStorage/'
 
-def getRandomBeatFile(associatedVoicefilename):
+def clean_storage(uuidBeatData, voicefilename):
+    """
+    Delete the temporary voicefilename and the beat data containing the uuidBeatData from the DATA_FOLDER 
+    """
+    try:
+        os.remove(DATA_FOLDER+voicefilename)
+        print("voice file "+voicefilename+" deleted")
+    except:
+        print("error in deleting the voice file "+voicefilename)
+    files = glob.glob(DATA_FOLDER+"*")
+    for filename in fnmatch.filter(files, uuidBeatData):
+        try:
+            os.remove(DATA_FOLDER+filename)
+            print("file "+filename+" deleted.")
+        except:
+            print("error in deleting the file "+filename)
+
+def to_bucket(filename_local, filename_bucket):
+    """
+    Send the generated data to the bucket
+    """
+    bucket = storage_client.get_bucket(BUCKET_NAME)
+    blob = bucket.blob(filename_bucket)
+    try:
+        blob.upload_from_filename(filename_local)
+        return True
+    except:
+        return False
+
+def bucket_download(bucket, source_filename, destination_file_name):
+    blob = bucket.blob(source_filename)
+    blob.download_to_filename(destination_file_name)
+
+def getRandomBeatData():
     '''
-    Connect to CephFS and retrieve a random beatFile.
-    Then, get the binaries of the file and save it inside /beatTempStorage folder with the name
+    Connect to bucket and retrieve a random beatFile with its associated metadata.
+    Then, get the binaries of the file and save it inside /data/sounds/ folder with the name
     `beat_<filenameUUID>.mp3`. Finally, return `beat_<filenameUUID>.mp3` as a string.
     '''
-    uuid = associatedVoicefilename.split("_")[1].split(".")[0]
-    if (CEPHFS):
-        
-    else:
-        
+    blobs = storage_client.list_blobs(BUCKET_NAME, prefix="beat_")
+    random_uuid = random.choice([blob.name for blob in blobs]).split("_")[1].split(".")[0]
 
+    bucket = storage_client.get_bucket(BUCKET_NAME)
+    metadata_prefixes = ["sound_", "tempDist_", "tempInt_"]
+    thread_list = list()
+    for p in metadata_prefixes:
+        if p == "sound_":
+            source_filename = "beat_"+p+random_uuid+".mp3"
+        else:
+            source_filename = "beat_"+p+random_uuid
+        t = threading.Thread(target=bucket_download, args=(bucket, source_filename, DATA_FOLDER+source_filename,))
+        thread_list.append(t)
+        t.start()
 
+    for idx, t in enumerate(thread_list):
+        t.join()
+        print("download #"+str(idx)+" ended.")
+    
+    return random_uuid
 
-@app.route('/upload/<uuid>',methods=['POST'])
-def upload_file(uuid):
+@app.route('/rapgenerator/<voicefilename>',methods=['POST'])
+def rapgenerator(voicefilename):
+    """
+    The incoming request comes from the audio streaming microservice which communicates the registered filename (as a string)
+    of the voice file uploaded in the bucket.
+    """
     if request.method == 'POST':
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
-        file = request.files['file']
-        if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            filename = secure_filename("voice_"+uuid+".mp3") # replace the original name by its uuid
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            
-            # call MusicAssembler and start
-            ma = MusicAssembler(getRandomBeatFile(filename),app.config['UPLOAD_FOLDER']+'/'+filename)
-            # connect to CephFS and register the data
-            if (CEPHFS):
+        uuidBeatData = getRandomBeatData() # download beat data from the bucket
+        bucket = storage_client.get_bucket(BUCKET_NAME)
+        bucket_download(bucket, voicefilename, DATA_FOLDER+voicefilename) #download the voice from the bucket and store it into DATA_FOLDER/filename
 
-            # delete all the temporary data
-
-            # return
+        # call MusicAssembler and run the model
+        ma = MusicAssembler(uuidBeatData, voicefilename)
+        outputfilename = ma.run()
+        if (outputfilename):
+            to_bucket(outputfilename, outputfilename)
+            clean_storage(uuidBeatData, voicefilename)
+            return jsonify(
+                statusCode=200,
+                outputfilename=outputfilename 
+            )
+        else:
+            return jsonify(
+                statusCode=500
+            )
 
 
 if __name__ == "__main__":
-    app.run(ssl_context=('cert.pem','key.pem')) # need to run generate_ceert.go here to get cert.pem and key.pem
+    app.run(ssl_context=('cert.pem','key.pem')) # need to run generate_cert.go here to get cert.pem and key.pem

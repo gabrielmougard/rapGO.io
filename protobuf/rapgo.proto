@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package rapgo;
+
+//----- rapgenerator service --------
+
+message GetFilenameRequest {
+    string filename = 1;
+}
+
+message OutputFilename {
+    string outputFilename = 1;
+}
+
+service RapGeneratorService {
+    rpc GetFilename(GetFilenameRequest) returns (OutputFilename) {}
+}
+

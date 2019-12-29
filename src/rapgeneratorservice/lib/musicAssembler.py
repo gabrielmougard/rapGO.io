@@ -276,6 +276,8 @@ class MusicAssembler:
         self.__exportMergedSound(mergedResult)
         print("Merger finished ")
 
+    def run(self):
+
 BEAT_PATH  = "testBeat/"
 VOICE_PATH = "testVoice/"
 
