@@ -64,12 +64,12 @@ def getRandomBeatData():
     random_uuid = random.choice([blob.name for blob in blobs]).split("_")[1].split(".")[0]
 
     bucket = storage_client.get_bucket(BUCKET_NAME)
-    metadata_prefixes = ["sound_", "tempDist_", "tempInt_"]
+    metadata_prefixes = ["duration_", "bpm_", "sound_", "tempDist_", "tempInt_", "verseInterval_"]
     thread_list = list()
     for p in metadata_prefixes:
         if p == "sound_":
             source_filename = "beat_"+p+random_uuid+".mp3"
-        else:
+        else: # it's binary objects
             source_filename = "beat_"+p+random_uuid
         t = threading.Thread(target=bucket_download, args=(bucket, source_filename, DATA_FOLDER+source_filename,))
         thread_list.append(t)

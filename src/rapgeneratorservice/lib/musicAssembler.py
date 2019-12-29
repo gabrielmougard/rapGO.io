@@ -1,8 +1,10 @@
 import sys
-from os import listdir
+from os
 import time
+import glob
 import pickle
 import random
+import fnmatch
 import math
 from os.path import isfile, join
 from aubio import onset, source, tempo
@@ -14,8 +16,8 @@ import alignment
 
 class MusicAssembler:
 
-    def __init__(self,beatfile,voicefile):
-        self.beatfile  = beatfile
+    def __init__(self,uuidBeatData,voicefile):
+        self.uuidBeatData  = uuidBeatData
         self.voicefile = voicefile
 
         self.beatsDistribution = [] #same dim as self.beatsIntensity
@@ -277,6 +279,32 @@ class MusicAssembler:
         print("Merger finished ")
 
     def run(self):
+        DATA_FOLDER = os.environ.get("SOUNDS_FOLDER", "../voiceTempStorage/")
+        files = glob.glob(DATA_FOLDER+"*")
+        for filename in fnmatch.filter(files, self.uuidBeatData):
+            prefix = filename.split("_")[1]
+            if prefix == "duration":
+                with open(DATA_FOLDER+filename, "rb") as f_in:
+                    self.beatfileDuration = pickle.load(DATA_FOLDER+filename)
+            elif prefix == "bpm":
+                with open(DATA_FOLDER+filename, "rb") as f_in:
+                    self.bpm = pickle.load(DATA_FOLDER+filename)
+            elif prefix == "sound":
+                print("voicefile detected !")
+            elif prefix == "tempDist":
+                with open(DATA_FOLDER+filename, "rb") as f_in:
+                    self.beatsDistribution = pickle.load(DATA_FOLDER+filename)
+            elif prefix == "tempInt":
+                with open(DATA_FOLDER+filename, "rb") as f_in:
+                    self.beatsIntensity = pickle.load(DATA_FOLDER+filename)
+            elif prefix == "verseInterval":
+                with open(DATA_FOLDER+filename, "rb") as f_in:
+                    self.verse_interval = pickle.load(DATA_FOLDER+filename)
+            else:
+                print("the prefix found does not match")
+        #the attributes are loaded, we can begin the voice spliter
+        
+        
 
 BEAT_PATH  = "testBeat/"
 VOICE_PATH = "testVoice/"
