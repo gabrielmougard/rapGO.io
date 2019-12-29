@@ -9,14 +9,13 @@ from google.cloud import storage
 import pickle 
 import threading
 
-UPLOAD_FOLDER = "/voiceTempStorage"
-ALLOWED_EXTENSION = {".mp3"}
-app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+try:
+    storage_client = storage.Client()
+except:
+    print("google.cloud storage could not be instantiated")
 
-storage_client = storage.Client()
-BUCKET_NAME = 'rapgo-bucket-1'
-DATA_FOLDER = 'voiceTempStorage/'
+BUCKET_NAME = os.environ.get('BUCKET_NAME', 'rapgo-bucket-1')
+DATA_FOLDER = os.environ.get('SOUNDS_FOLDER', 'voiceTempStorage/')
 
 def clean_storage(uuidBeatData, voicefilename):
     """
