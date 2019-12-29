@@ -6,13 +6,17 @@ from flask import Flask, flash, request, redirect, url_for, jsonify
 from werkzeug.utils import secure_filename
 from lib.musicAssembler import MusicAssembler
 from google.cloud import storage
-import pickle 
 import threading
+
+app = Flask(__name__)
 
 try:
     storage_client = storage.Client()
 except:
     print("google.cloud storage could not be instantiated")
+
+from logger import getJSONLogger
+logger = getJSONLogger('rapgeneratorservice-server')
 
 BUCKET_NAME = os.environ.get('BUCKET_NAME', 'rapgo-bucket-1')
 DATA_FOLDER = os.environ.get('SOUNDS_FOLDER', 'voiceTempStorage/')
@@ -77,7 +81,7 @@ def getRandomBeatData():
     
     return random_uuid
 
-@app.route('/rapgenerator/<voicefilename>',methods=['POST'])
+@app.route("/<voicefilename>", methods=['POST'])
 def rapgenerator(voicefilename):
     """
     The incoming request comes from the audio streaming microservice which communicates the registered filename (as a string)
@@ -102,7 +106,10 @@ def rapgenerator(voicefilename):
             return jsonify(
                 statusCode=500
             )
-
+    else:
+        return jsonify(
+                statusCode=404 
+            )
 
 if __name__ == "__main__":
-    app.run(ssl_context=('cert.pem','key.pem')) # need to run generate_cert.go here to get cert.pem and key.pem
+    app.run() # need to run generate_cert.go here to get cert.pem and key.pem
