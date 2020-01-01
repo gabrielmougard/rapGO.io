@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingestionservice
+spec:
+  selector:
+    matchLabels:
+      app: ingestionservice
+  template:
+    metadata:
+      labels:
+        app: ingestionservice
+    spec:
+      volumes: #ephemeral filesystem to share binaries from a container to an other one.
+      - name: shared-data
+        emptyDir: {}
+      containers:
+      - name: musicparser
+        image: musicparserservice
+        volumeMounts:
+        - name: shared-data
+          mountPath: /data/raw
+        ports:
+        - containerPort: 5010
+        env:
+        - name: PORT
+          value: "5010"
+        - name: TEMP_STORAGE_FOLDER
+          value: "/data/raw/"
+        resources:
+          requests:
+            cpu: 300m
+            memory: 128Mi
+          limits:
+            cpu: 400m
+            memory: 256Mi
+      - name: musicdataextractor
+        image: musicdataextractorservice
+        volumeMounts:
+        - name: shared-data
+          mountPath: /data/raw        
+        ports:
+        - containerPort: 5020
+        env:
+        - name: PORT
+          value: "5020"
+        - name: TEMP_STORAGE_FOLDER
+          value: "/data/raw/"
+        resources:
+          requests:
+            cpu: 700m
+            memory: 512Mi
+          limits:
+            cpu: 800m
+            memory: 1024Mi
+      - name: datauploader
+        image: datauploaderservice
+        volumeMounts:
+        - name: shared-data
+          mountPath: /data/raw
+        ports:
+        - containerPorts: 5030
+        env:
+        - name: PORT
+          value: "5030"
+        - name: TEMP_STORAGE_FOLDER
+          value: "/data/raw/"
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: "/data/google-credentials/keen-dispatch.json"
+---
+apiVersion: apps/v1
+kind: Service
+metadata:
+  name: ingestionservice
+spec:
+  type: ClusterIP
+  selector:
+    app: ingestionservice
+  ports:
+  - port: 5010
+    targetPort: 5010
