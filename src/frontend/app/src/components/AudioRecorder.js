@@ -19,6 +19,7 @@ class AudioRecorder extends Component {
   }
 
   onSave=(blobObject) => {
+    console.log("on Save")
     this.setState({
       downloadLinkURL: blobObject.blobURL
     })
@@ -29,11 +30,12 @@ class AudioRecorder extends Component {
   }
 
   onStop= (blobObject) => {
+    console.log("on Stop !")
     this.setState({ blobURL: blobObject.blobURL })
   }
 
   onData(recordedBlob){
-    // console.log('ONDATA CALL IS BEING CALLED! ', recordedBlob);
+    console.log('ONDATA CALL IS BEING CALLED! ', recordedBlob);
   }
 
   onBlock() {
