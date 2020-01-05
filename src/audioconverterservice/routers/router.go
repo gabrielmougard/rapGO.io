@@ -2,14 +2,9 @@ package routers
 
 import (
 	"net/http"
-
 	"github.com/gin-gonic/gin"
-	"github.com/swaggo/gin-swagger"
-	"github.com/swaggo/gin-swagger/swaggerFiles"
 
 	"rapGO.io/src/audioconverterservice/routers/api"
-
-	"rapGO.io/src/audioconverterservice/middleware/jwt"
 
 )
 

@@ -2,7 +2,6 @@ package api
 
 import (
 	"net/http"
-
 	"github.com/gin-gonic/gin"
 
 	"rapGO.io/src/audioconverterservice/pkg/upload"
@@ -10,13 +9,14 @@ import (
 )
 
 func UploadInputBLOB(c *gin.Context) {
-	file, header, err := c.Request.FormFile("file")
-	defer file.Close()
+	file, err := c.FormFile("file")
 	if err != nil {
-		return nil, err
+		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
 	}
-	buf := bytes.NewBuffer(nil)
-	if _, err := io.Copy(buf, file); err != nil {
-		return nil, err
+	filename := "random.mp3" //use UUID here
+	fmt.Println(filename)
+	if err := c.SaveUploadedFile(file, filename); err != nil {
+		c.String(http.StatusBadRequest, fmt.Sprintf("upload file err: %s", err.Error()))
 	}
+	c.String(http.StatusOK, fmt.Sprintf("File %s uploaded successfully.", file.Filename))
 }
