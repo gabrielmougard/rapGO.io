@@ -4,10 +4,18 @@ import { call, put, takeLatest, all } from 'redux-saga/effects';
 import axios from 'axios';
 
 function* fetchRap(action) {
-    //API call here...
     const { inputBLOB } = action.payload;
+    console.log("[SAGA] blob")
+    console.log(inputBLOB)
+    const data = new FormData();
+    data.append('file', inputBLOB.blob, "recording.mp3");
+
     try {
-        var response = yield call([axios, axios.post], 'http://'+ GENERATOR_SERVER + '/generate');
+        var response = yield call([axios, axios.post], 'http://'+ GENERATOR_SERVER + '/upload', data, {
+            headers: {
+                'Content-Type': `multipart/form-data; boundary=${data._boundary}`,
+            }
+        });
         const { status, outputBLOB } = response.data
         if (status == 200 && outputBLOB) {
             console.log("[SAGA] : outputBLOB detected.");

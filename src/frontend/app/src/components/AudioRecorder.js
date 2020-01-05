@@ -1,9 +1,12 @@
 import React, { Component } from 'react'
+import { connect } from 'react-redux';
 import { ReactMic } from 'react-mic'
 import {Button} from 'baseui/button';
 import TriangleRight from 'baseui/icon/triangle-right';
 import Upload from 'baseui/icon/upload';
 import Check from 'baseui/icon/check';
+
+import { getRap } from '../actions';
 
 require('./styles.scss')
 
@@ -69,10 +72,10 @@ class AudioRecorder extends Component {
   }
 
   sendBLOB=() => {
-    console.log(this.state.rawInputBLOB);
     this.setState({
       isProcessingBLOB: true
     })
+    this.props.getRap(this.state.rawInputBLOB);
   }
 
   render() {
@@ -139,4 +142,16 @@ class AudioRecorder extends Component {
   }
 }
 
-export default AudioRecorder
+const mapStateToProps = (state) => {
+  return {
+    isProcessingBLOB: state.isProcessingBLOB
+  }
+}
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    getRap: (inputBLOB) => { dispatch(getRap(inputBLOB)) },
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(AudioRecorder);
