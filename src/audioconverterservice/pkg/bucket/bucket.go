@@ -5,6 +5,7 @@ package bucket
 import (
 	"context"
 	"fmt"
+	"os"
 	"log"
 	"bytes"
 	"cloud.google.com/go/storage"
@@ -37,7 +38,19 @@ func NewBucketInterface() (*BucketInterface, error) {
 }
 
 func (bi *BucketInterface) Upload(filenameToUpload string) (bool, error) {
+	f, err := os.Open(config.getTmpFolder()+filenameToUpload)
+	if err != nil {
+        return false, err
+	}
+	defer f.Close()
+	wc := bi.Client.Bucket(bi.Bucket).Object(object).NewWriter(bi.Ctx)
+	if _, err := wc.Close(); err != nil {
+		return false, err
+	}
+	return true, nil
 
 }
 
-func (bi *BucketInterface) Dowload(filenameToDownload string) ([]bytes, error)
+func (bi *BucketInterface) Dowload(filenameToDownload string) ([]bytes, error) {
+
+}
