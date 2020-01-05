@@ -1,5 +1,9 @@
 import React, { Component } from 'react'
 import { ReactMic } from 'react-mic'
+import {Button} from 'baseui/button';
+import TriangleRight from 'baseui/icon/triangle-right';
+import Upload from 'baseui/icon/upload';
+import Check from 'baseui/icon/check';
 
 require('./styles.scss')
 
@@ -10,7 +14,9 @@ class AudioRecorder extends Component {
       downloadLinkURL: null,
       isRecording: false,
       recordingStarted: false,
-      recordingStopped: false
+      recordingStopped: false,
+      isProcessingBLOB: false,
+      rawInputBLOB: null
     }
   }
 
@@ -21,7 +27,8 @@ class AudioRecorder extends Component {
   onSave=(blobObject) => {
     console.log("on Save")
     this.setState({
-      downloadLinkURL: blobObject.blobURL
+      downloadLinkURL: blobObject.blobURL,
+      rawInputBLOB: blobObject
     })
   }
 
@@ -61,6 +68,13 @@ class AudioRecorder extends Component {
     })
   }
 
+  sendBLOB=() => {
+    console.log(this.state.rawInputBLOB);
+    this.setState({
+      isProcessingBLOB: true
+    })
+  }
+
   render() {
     const {
       blobURL,
@@ -71,10 +85,9 @@ class AudioRecorder extends Component {
       recordingStopped
     } = this.state
 
-    const recordBtn = recordingInSession ? "fa disabled fa-record-vinyl fa-fw" : "fa fa-record-vinyl fa-fw"
-    const stopBtn = !recordingStarted ? "fa disabled fa-stop-circle" : "fa fa-stop-circle"
+    const recordBtn = recordingInSession ? true : false
     const downloadLink = recordingStopped ? "fa fa-download" : "fa disabled fa-download"
-
+    
     return (
       <div>
         <div id="project-wrapper">
@@ -100,26 +113,19 @@ class AudioRecorder extends Component {
                 {!recordingInSession && <div id="scrim" />}
               </div>
               <div id="controls">
-                <div className="column active">
-                  <i
-                    onClick={this.startRecording}
-                    className={recordBtn}
-                    aria-hidden="true"
-                  />
-                </div>
-                <div className="column">
-                  <i
-                    onClick={this.stopRecording}
-                    className={stopBtn}
-                    aria-hidden="true"
-                  />
-                </div>
+
+                <Button isLoading={recordBtn} onClick={this.startRecording} startEnhancer={() => <TriangleRight size={30} />}>
+                  Start Recording
+                </Button>
+                <span />
+                <Button onClick={this.stopRecording} startEnhancer={() => <Check size={30} />}>
+                  Stop Recording
+                </Button>
+                
                 <div className="column download">
-                  <a
-                    className={downloadLink}
-                    href={downloadLinkURL}
-                    download={`recording.webm`}
-                  />
+                  <Button onClick={this.sendBLOB} endEnhancer={() => <Upload size={30} />}>
+                    Generate !
+                </Button>
                 </div>
               </div>
             </div>

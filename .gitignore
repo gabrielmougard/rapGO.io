@@ -4,3 +4,6 @@ testPickle/
 testBeat/
 chunks/
 testOutput/
+
+# dependencies
+/node_modules

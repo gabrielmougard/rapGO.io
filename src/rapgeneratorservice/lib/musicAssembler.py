@@ -303,6 +303,8 @@ class MusicAssembler:
             else:
                 print("the prefix found does not match")
         #the attributes are loaded, we can begin the voice spliter
+        self.voice_splitter()
+        self.merger()
         
         
 
