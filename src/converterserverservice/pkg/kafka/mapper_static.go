@@ -14,7 +14,7 @@ func (e *StaticEventMapper) MapEvent(eventName string, serialized interface{}) (
 	var event Event
 
 	switch eventName {
-	case "event1":
+	case "to":
 		event = &contracts.Event1{}
 	case "event2":
 		event = &contracts.Event2{}
