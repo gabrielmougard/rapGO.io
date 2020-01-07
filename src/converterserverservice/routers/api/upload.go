@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 
-	"rapGO.io/src/audioconverterservice/pkg/upload"
+	"rapGO.io/src/audioconverterservice/pkg/uuid"
 
 )
 
@@ -13,7 +13,7 @@ func UploadInputBLOB(c *gin.Context) {
 	if err != nil {
 		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
 	}
-	filename := "random.mp3" //use UUID here
+	filename := uuid.NewVoiceUUID() //use UUID here
 	fmt.Println(filename)
 	if err := c.SaveUploadedFile(file, filename); err != nil {
 		c.String(http.StatusBadRequest, fmt.Sprintf("upload file err: %s", err.Error()))
