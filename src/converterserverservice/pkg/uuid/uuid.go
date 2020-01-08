@@ -2,7 +2,7 @@ package uuid
 
 import (
 	"github.com/google/uuid"
-	"rapGO.io/src/audioconverterservice/pkg/setting"
+	"rapGO.io/src/converterserverservice/pkg/setting"
 )
 
 func NewVoiceUUID() string {

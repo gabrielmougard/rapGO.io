@@ -3,6 +3,7 @@ package eventproc
 import (
 	"log"
 	"os"
+	"fmt"
 	"strings"
 	"errors"
 
@@ -21,8 +22,7 @@ func (ep *EventProcessor) ProcessEvents() {
 	log.Println("listening for events...")
 	toBucketTopic, ok := os.LookupEnv("KAFKA_TOPIC_TOBUCKET")
 	if !ok {
-		log.Fatalf("The Kafka topic for storage bucket is not defined")
-		panic()
+		panic(errors.New("The Kafka topic for storage bucket is not defined"))
 	}
 	received, errors, err := ep.EventListener.Listen(toBucketTopic)
 	if err != nil {
@@ -66,23 +66,23 @@ func (ep *EventProcessor) handleEvent(event kafka.Event) {
 		log.Printf("unknown event type: %T", e)
 	}
 	
-	go func(eh kafka.EventEmitter, filenameToBucket, eventUUID, heartbeatDesc string) {
+	go func(ep *EventProcessor, filenameToBucket, eventUUID, heartbeatDesc string) {
 		//upload to bucket
-		err := eh.BucketInterface.Upload(filenameToBucket)
+		err := ep.BucketInterface.Upload(filenameToBucket)
 		if err != nil {
 			log.Printf("The filename %s couldn't be uploaded to storage.", filenameToBucket)
 			heartbeatDesc = "Internal error. The file "+filenameToBucket+" couldn't be uploaded to the storage"
 		}
 		//Create & Emit to Kafka hearbeat topic according to content of event
 		msg := events.HeartbeatEvent{
-			EventUUID: eventUUID
-			HeartbeatDesc: heartbeatDesc
+			EventUUID: eventUUID,
+			HeartbeatDesc: heartbeatDesc,
 		}
 	
-		err := eh.Emit(&msg)
+		err = ep.EventEmitter.Emit(&msg)
 		if err != nil {
 			log.Printf("The heartbeat for UUID: %s couldn't be sent", eventUUID)
 		}
-	}(ep.EventEmitter, filenameToBucket, eventUUID, heartbeatDesc)
+	}(ep, filenameToBucket, eventUUID, heartbeatDesc)
 
 }
