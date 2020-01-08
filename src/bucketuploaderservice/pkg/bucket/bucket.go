@@ -6,7 +6,6 @@ import (
 	"context"
 	"os"
 	"log"
-	"bytes"
 	"cloud.google.com/go/storage"
 
 )
@@ -32,16 +31,16 @@ func NewBucketInterface(projectID, bucketName string) (*BucketInterface, error) 
 	
 }
 
-func (bi *BucketInterface) Upload(filenameToUpload string) (bool, error) {
+func (bi *BucketInterface) Upload(filenameToUpload string) error {
 	f, err := os.Open(config.getTmpFolder()+filenameToUpload)
 	if err != nil {
-        return false, err
+        return err
 	}
 	defer f.Close()
 	wc := bi.Client.Bucket(bi.Bucket).Object(object).NewWriter(bi.Ctx)
-	if _, err := wc.Close(); err != nil {
-		return false, err
+	if err := wc.Close(); err != nil {
+		return err
 	}
-	return true, nil
+	return nil
 
 }
