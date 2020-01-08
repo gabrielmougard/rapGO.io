@@ -5,7 +5,9 @@ package bucket
 import (
 	"context"
 	"os"
+	"io"
 	"log"
+	"errors"
 	"cloud.google.com/go/storage"
 
 )
@@ -32,12 +34,21 @@ func NewBucketInterface(projectID, bucketName string) (*BucketInterface, error) 
 }
 
 func (bi *BucketInterface) Upload(filenameToUpload string) error {
-	f, err := os.Open(config.getTmpFolder()+filenameToUpload)
+	tmpFolder, ok := os.LookupEnv("TMP_FOLDER")
+	if !ok {
+		return errors.New("No TMP_FOLDER detected.")
+	}
+	f, err := os.Open(tmpFolder+filenameToUpload)
 	if err != nil {
         return err
 	}
 	defer f.Close()
-	wc := bi.Client.Bucket(bi.Bucket).Object(object).NewWriter(bi.Ctx)
+	bucketFilename := filenameToUpload
+	
+	wc := bi.Client.Bucket(bi.BucketName).Object(bucketFilename).NewWriter(bi.Ctx)
+	if _, err = io.Copy(wc, f); err != nil {
+		return err
+	}
 	if err := wc.Close(); err != nil {
 		return err
 	}

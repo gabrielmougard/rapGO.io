@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"rapGO.io/src/bucketuploaderservice/pkg/kafka/events"
+	
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -16,10 +17,6 @@ func (e *StaticEventMapper) MapEvent(eventName string, serialized interface{}) (
 	switch eventName {
 	case "toBucket":
 		event = &events.ToBucketEvent{}
-	case "event2":
-		event = &contracts.Event2{}
-	case "event3":
-		event = &contracts.Event3{}
 	default:
 		return nil, fmt.Errorf("unknown event type %s", eventName)
 	}

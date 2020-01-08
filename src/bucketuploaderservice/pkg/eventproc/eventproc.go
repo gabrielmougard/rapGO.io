@@ -4,11 +4,13 @@ import (
 	"log"
 	"os"
 	"strings"
+	"errors"
 
 	"rapGO.io/src/bucketuploaderservice/pkg/bucket"
 	"rapGO.io/src/bucketuploaderservice/pkg/kafka"
 	"rapGO.io/src/bucketuploaderservice/pkg/kafka/events"
 )
+
 type EventProcessor struct {
 	EventListener kafka.EventListener
 	EventEmitter kafka.EventEmitter
