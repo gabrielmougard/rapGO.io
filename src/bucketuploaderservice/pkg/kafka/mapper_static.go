@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"rapGO.io/src/converterserverservice/pkg/contracts"
+	"rapGO.io/src/bucketuploaderservice/pkg/kafka/events"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -14,8 +14,8 @@ func (e *StaticEventMapper) MapEvent(eventName string, serialized interface{}) (
 	var event Event
 
 	switch eventName {
-	case "to":
-		event = &contracts.Event1{}
+	case "toBucket":
+		event = &events.ToBucketEvent{}
 	case "event2":
 		event = &contracts.Event2{}
 	case "event3":
