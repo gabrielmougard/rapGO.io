@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 
-	"rapGO.io/src/audioconverterservice/pkg/setting"
-	"rapGO.io/src/audioconverterservice/routers"
+	"rapGO.io/src/converterserverservice/pkg/fswatcher"
+	"rapGO.io/src/converterserverservice/routers"
 )
 
 func init() {
-	setting.Setup()
+	fswatcher.Setup()
 }
 
 func main() {

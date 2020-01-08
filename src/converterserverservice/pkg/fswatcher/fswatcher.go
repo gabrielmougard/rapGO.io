@@ -4,12 +4,11 @@ import (
 	"log"
 	"github.com/fsnotify/fsnotify"
 
-	"rapGO.io/src/audioconverterservice/config"
 )
 // follow that example :
 // https://gist.github.com/hiroakis/8968d8caae55d460a80206ea4930bab7
 
-func init() {
+func Setup() {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 	    log.Fatal(err)
