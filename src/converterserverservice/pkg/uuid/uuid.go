@@ -1,13 +1,22 @@
 package uuid
 
 import (
+	"errors"
+	"os"
+	
 	"github.com/google/uuid"
-	"rapGO.io/src/converterserverservice/pkg/setting"
 )
 
 func NewVoiceUUID() string {
-	basePrefix := setting.GetVoiceUUIDPrefix()
+	// TODO : use env variables instead
+	basePrefix, ok := os.LookupEnv("INPUT_PREFIX")
+	if !ok {
+		panic(errors.New("The environment variable INPUT_PREFIX is not defined."))
+	}
+	baseSuffix, ok := os.LookupEnv("INPUT_SUFFIX")
+	if !ok {
+		panic(errors.New("The environment variable INPUT_SUFFIX is not defined."))
+	}
 	uuid := uuid.New().String()
-	baseSuffix := setting.GetVoiceUUIDSuffix()
 	return basePrefix+uuid+baseSuffix //sth like input_xxxx-xxxx-xxxx-xxxx.mp3
 }
