@@ -1,13 +1,41 @@
-FROM golang:latest
+FROM golang:1.12-alpine AS builder
+# install xz
+RUN apt-get update && apt-get install -y \
+    xz-utils \
+&& rm -rf /var/lib/apt/lists/*
+# install UPX
+ADD https://github.com/upx/upx/releases/download/v3.94/upx-3.94-amd64_linux.tar.xz /usr/local
+RUN xz -d -c /usr/local/upx-3.94-amd64_linux.tar.xz | \
+    tar -xOf - upx-3.94-amd64_linux/upx > /bin/upx && \
+    chmod a+x /bin/upx
+# install glide
+RUN go get github.com/Masterminds/glide
+# setup the working directory
+ENV PROJECT rapGO.io/src/converterserverservice
+WORKDIR /go/src/$PROJECT
+ADD glide.yaml glide.yaml
+ADD glide.lock glide.lock
+# install dependencies
+RUN glide install
+# add the source code
+COPY . .
+RUN go build -o /converterserverservice .
+# strip and compress the binary
+RUN strip --strip-unneeded converterserverservice
+RUN upx converterserverservice
 
-WORKDIR $GOPATH/src/rapGO.io/src/audioconverterservice
-COPY . $GOPATH/src/rapGO.io/src/audioconverterservice
-RUN go build .
-
+# use a minimal alpine image
+FROM alpine
+RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+# set working directory
+WORKDIR /root
+# copy the binary from builder
+COPY --from=builder /go/src/$PROJECT/converterserverservice .
+# expose port
 EXPOSE 3001
-
 # env setup
-ENV SERVER_HTTP_PORT 3001
-ENV APP_TMP_FOLDER  
+
 #
+
+# run the binary
 ENTRYPOINT ["./converterserverservice"]
