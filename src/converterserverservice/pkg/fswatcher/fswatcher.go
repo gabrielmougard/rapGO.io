@@ -2,14 +2,16 @@ package fswatcher
 
 import (
 	"log"
-	"github.com/fsnotify/fsnotify"
+	"errors"
+	"os"
+	
+	fslib "rapGO.io/src/converterserverservice/pkg/fswatcher/lib"
 
 )
-// follow that example :
-// https://gist.github.com/hiroakis/8968d8caae55d460a80206ea4930bab7
+
 
 func Setup() {
-	watcher, err := fsnotify.NewWatcher()
+	watcher, err := fslib.NewWatcher()
 	if err != nil {
 	    log.Fatal(err)
 	}
@@ -19,14 +21,15 @@ func Setup() {
 	go func() {
 	    for {
 	        select {
-	        case event, ok := <-watcher.Events:
-	            if !ok {
-	                return
-	            }
+	        case event := <-watcher.Events:
 	            log.Println("event:", event)
-	            if event.Op&fsnotify.Write == fsnotify.Write {
+	            if event.Op&fslib.Create == fslib.Create {
 	                log.Println("modified file:", event.Name)
-	            }
+				}
+				
+				if event.Op&fslib.Remove == fslib.Remove {
+
+				}
 	        case err, ok := <-watcher.Errors:
 	            if !ok {
 	                return
@@ -35,8 +38,12 @@ func Setup() {
 	        }
 	    }
 	}()
+	tmpFolder, ok := os.LookupEnv("TMP_FOLDER")
+	if !ok {
+		panic(errors.New("The environment variable TMP_FOLDER is not defined."))
+	}
 
-	err = watcher.Add(config.getTmpFolder())
+	err = watcher.Add(tmpFolder)
 	if err != nil {
 	    log.Fatal(err)
 	}

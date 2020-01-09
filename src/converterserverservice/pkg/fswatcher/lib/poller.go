@@ -18,6 +18,15 @@ type fdPoller struct {
 	pipe [2]int //Pipe for waking up
 }
 
+func emptyPoller(fd int) *fdPoller {
+	poller := new(fdPoller)
+	poller.fd = fd
+	poller.epfd = -1
+	poller.pipe[0] = -1
+	poller.pipe[1] = -1
+	return poller
+}
+
 // Create a new inotify poller.
 // This creates an inotify handler, and an epoll handler.
 func newFdPoller(fd int) (*fdPoller, error) {
