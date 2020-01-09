@@ -33,3 +33,8 @@ After you connect to the dashboard you will need to login for secure access. Roo
 
 It was so painful to deploy glusterFS or cephFS that I decided I will setup a simple google cloud bucket, and thus add an extra bill for this simpler solution...
 
+## Kafka
+
+* https://success.docker.com/article/getting-started-with-kafka  (for testing)
+* https://rmoff.net/2018/08/02/kafka-listeners-explained/ (an other interesting link for debugging kafka networking)
+* kafka official Helm chart (for production)
