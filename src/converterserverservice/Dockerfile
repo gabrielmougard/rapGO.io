@@ -8,6 +8,7 @@ ADD https://github.com/upx/upx/releases/download/v3.94/upx-3.94-amd64_linux.tar.
 RUN xz -d -c /usr/local/upx-3.94-amd64_linux.tar.xz | \
     tar -xOf - upx-3.94-amd64_linux/upx > /bin/upx && \
     chmod a+x /bin/upx
+
 # install glide
 RUN go get github.com/Masterminds/glide
 # setup the working directory
@@ -19,7 +20,7 @@ ADD glide.lock glide.lock
 RUN glide install
 # add the source code
 COPY . .
-RUN go build -o /converterserverservice .
+RUN go build -o converterserverservice .
 # strip and compress the binary
 RUN strip --strip-unneeded converterserverservice
 RUN upx converterserverservice
@@ -29,13 +30,28 @@ FROM alpine
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 # set working directory
 WORKDIR /root
+# copy some needed binaries
+COPY --from=builder /usr/lib/pkgconfig /usr/lib/pkgconfig
 # copy the binary from builder
-COPY --from=builder /go/src/$PROJECT/converterserverservice .
+COPY --from=builder /go/src/rapGO.io/src/converterserverservice .
 # expose port
 EXPOSE 3001
-# env setup
 
-#
+# define all the needed environment variables
+# define all the needed environment variables
+ENV INPUT_PREFIX input
+ENV INPUT_SUFFIX .mp3
+ENV OUTPUT_PREFIX output
+ENV OUTPUT_SUFFIX .mp3
+
+ENV TMP_FOLDER /data/tmp/
+
+ENV KAFKA_BROKER
+ENV KAFKA_CONSUMERGROUP_ID
+ENV KAFKA_TOPIC_TOBUCKET toBucket
+ENV KAFKA_TOPIC_TOCORE toCore
+ENV KAFKA_TOPICPREFIX_HEARTBEAT heartbeat_
+ENV KAFKA_TOPIC_TOSTREAM toStream
 
 # run the binary
 ENTRYPOINT ["./converterserverservice"]
