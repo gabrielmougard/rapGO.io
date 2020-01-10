@@ -1,4 +1,4 @@
-FROM golang:1.12-alpine AS builder
+FROM golang:1.12-buster AS builder
 # install xz
 RUN apt-get update && apt-get install -y \
     xz-utils \

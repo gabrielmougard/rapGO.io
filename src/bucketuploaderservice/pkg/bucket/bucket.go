@@ -7,7 +7,9 @@ import (
 	"os"
 	"io"
 	"log"
-	"errors"
+
+	"rapGO.io/src/bucketuploaderservice/pkg/setting"
+	
 	"cloud.google.com/go/storage"
 
 )
@@ -34,10 +36,7 @@ func NewBucketInterface(projectID, bucketName string) (*BucketInterface, error) 
 }
 
 func (bi *BucketInterface) Upload(filenameToUpload string) error {
-	tmpFolder, ok := os.LookupEnv("TMP_FOLDER")
-	if !ok {
-		return errors.New("No TMP_FOLDER detected.")
-	}
+	tmpFolder := setting.TmpFolder()
 	f, err := os.Open(tmpFolder+filenameToUpload)
 	if err != nil {
         return err

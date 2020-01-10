@@ -78,4 +78,46 @@ func (k *kafkaEventListener) Listen(events ...string) (<-chan kafka.Event, <-cha
 	}
 
 	log.Printf("topic %s has partitions: %v", topic)
+
+	for _, partition := range partitions {
+		log.Printf("consuming partition %s:%d", topic, partition)
+
+		pConsumer, err := k.consumer.ConsumePartition(topic, partition, 0)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		go func() {
+			for msg := range pConsumer.Messages() {
+				log.Printf("received message %v", msg)
+
+				body := messageEnvelope{}
+				err := json.Unmarshal(msg.Value, &body)
+				if err != nil {
+					errors <- fmt.Errorf("could not JSON-decode message: %v", err)
+					continue
+				}
+
+				event, err := k.mapper.MapEvent(body.EventName, body.Payload)
+				if err != nil {
+					errors <- fmt.Errorf("could not map message: %v", err)
+					continue
+				}
+
+				results <- event
+			}
+		}()
+
+		go func() {
+			for err := range pConsumer.Errors() {
+				errors <- err
+			}
+		}()
+	}
+
+	return results, errors, nil
+}
+
+func (kel *kafkaEventListener) Mapper() kafka.EventMapper {
+	return kel.mapper
 }
