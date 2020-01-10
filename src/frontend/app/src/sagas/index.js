@@ -1,4 +1,4 @@
-import { GENERATOR_SERVER } from '../CONSTANTS.js';
+import { CONVERTER_SERVER } from '../CONSTANTS.js';
 import { fetchRapEnded } from '../actions/index';
 import { call, put, takeLatest, all } from 'redux-saga/effects';
 import axios from 'axios';
@@ -11,7 +11,7 @@ function* fetchRap(action) {
     data.append('file', inputBLOB.blob, "recording.mp3");
 
     try {
-        var response = yield call([axios, axios.post], 'http://'+ GENERATOR_SERVER + '/upload', data, {
+        var response = yield call([axios, axios.post], 'http://'+ CONVERTER_SERVER + '/upload', data, {
             headers: {
                 'Content-Type': `multipart/form-data; boundary=${data._boundary}`,
             }

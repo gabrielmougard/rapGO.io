@@ -92,10 +92,10 @@ func (h ConsumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, cla
 					heartbeatDesc = "Internal error. The file "+filenameToBucket+" couldn't be uploaded to the storage"
 				}
 				//Create & Emit to Kafka hearbeat topic according to content of event
-				message := &sarama.ProducerMessage{Topic: setting.ToHeartbeatTopicPrefix()+eventUUID, Value: sarama.StringEncoder(heartbeatDesc)}
+				message := &sarama.ProducerMessage{Topic: setting.ToHeartbeatTopic(), Value: sarama.StringEncoder(eventUUID+"_"+heartbeatDesc)}
 				select {
 				case producer.Input() <- message:
-					log.Println("heartbeat sent : "+heartbeatDesc)
+					log.Println("heartbeat(@"+eventUUID+") sent : "+heartbeatDesc)
 				case <-signals:
 					producer.AsyncClose() // Trigger a shutdown of the producer.
 					return

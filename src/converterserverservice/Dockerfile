@@ -38,7 +38,11 @@ COPY --from=builder /go/src/rapGO.io/src/converterserverservice .
 EXPOSE 3001
 
 # define all the needed environment variables
-# define all the needed environment variables
+ENV SERVER_HTTP_PORT 3001
+ENV SERVER_RUN_MODE debug
+ENV SERVER_READ_TIMEOUT 60
+ENV SERVER_WRITE_TIMEOUT 60
+
 ENV INPUT_PREFIX input
 ENV INPUT_SUFFIX .mp3
 ENV OUTPUT_PREFIX output
@@ -46,11 +50,11 @@ ENV OUTPUT_SUFFIX .mp3
 
 ENV TMP_FOLDER /data/tmp/
 
-ENV KAFKA_BROKER
-ENV KAFKA_CONSUMERGROUP_ID
+ENV KAFKA_BROKER kafkaservice:9093
+ENV KAFKA_CONSUMERGROUP_ID sarama_consumer
 ENV KAFKA_TOPIC_TOBUCKET toBucket
 ENV KAFKA_TOPIC_TOCORE toCore
-ENV KAFKA_TOPICPREFIX_HEARTBEAT heartbeat_
+ENV KAFKA_TOPIC_HEARTBEAT toHeartbeat
 ENV KAFKA_TOPIC_TOSTREAM toStream
 
 # run the binary

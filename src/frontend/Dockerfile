@@ -12,4 +12,6 @@ RUN npm run build
 FROM nginx:1.16.0-alpine
 COPY --from=build /app/build /usr/share/nginx/html
 EXPOSE 80
+
+ENV CONVERTER_SERVER converterserver:3001
 CMD ["nginx", "-g", "daemon off;"]

@@ -13,6 +13,14 @@ func ServerHTTPport() string {
 	return v
 }
 
+func ServerRunMode() string {
+	v, ok := os.LookupEnv("SERVER_RUN_MODE")
+	if !ok {
+		panic(errors.New("the server run mode is not detected."))
+	}
+	return v
+}
+
 func ServerReadTimeout() string {
 	v, ok := os.LookupEnv("SERVER_READ_TIMEOUT")
 	if !ok {
@@ -81,6 +89,14 @@ func ToStreamTopic() string {
 	v, ok := os.LookupEnv("KAFKA_TOPIC_TOSTREAM")
 	if !ok {
 		panic(errors.New("the kafka topic toStream is not detected."))
+	}
+	return v
+}
+
+func ToHeartbeatTopic() string {
+	v, ok := os.LookupEnv("KAFKA_TOPIC_HEARTBEAT")
+	if !ok {
+		panic(errors.New("the kafka topic toHeartbeat is not detected."))
 	}
 	return v
 }

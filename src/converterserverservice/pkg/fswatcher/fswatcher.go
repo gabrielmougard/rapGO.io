@@ -90,7 +90,7 @@ func triggerBucket(producer sarama.AsyncProducer, signals chan os.Signal, filena
 
 func triggerCore(producer sarama.AsyncProducer, signals chan os.Signal, filename string) {
 	//send a kafka event to 'toCore'
-	toCoreTopic := setting.toCoreTopic()
+	toCoreTopic := setting.ToCoreTopic()
 	message := &sarama.ProducerMessage{Topic: toCoreTopic, Value: sarama.StringEncoder(filename)}
 	select {
 	case producer.Input() <- message:
@@ -102,7 +102,7 @@ func triggerCore(producer sarama.AsyncProducer, signals chan os.Signal, filename
 
 func triggerStream(producer sarama.AsyncProducer, signals chan os.Signal, filename string) {
 	//send a kafka event to 'toStream'
-	toStreamTopic := setting.toCoreTopic()
+	toStreamTopic := setting.ToCoreTopic()
 	message := &sarama.ProducerMessage{Topic: toStreamTopic, Value: sarama.StringEncoder(filename)}
 	select {
 	case producer.Input() <- message:

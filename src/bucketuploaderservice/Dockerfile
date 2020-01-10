@@ -21,7 +21,6 @@ RUN glide install
 # add the source code
 COPY . .
 RUN go build -o bucketuploader
-RUN ls
 # strip and compress the binary
 RUN strip --strip-unneeded bucketuploader
 RUN upx bucketuploader
@@ -31,9 +30,8 @@ FROM alpine
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 # set working directory
 WORKDIR /root
-# copy some needed binaries for librdkafka
+# copy some needed binaries
 COPY --from=builder /usr/lib/pkgconfig /usr/lib/pkgconfig
-COPY --from=builder /usr/lib/librdkafka* /usr/lib/
 # copy the binary from builder
 COPY --from=builder /go/src/rapGO.io/src/bucketuploaderservice/bucketuploader .
 # copy the private key for accessing the google cloud storage
@@ -47,11 +45,11 @@ ENV OUTPUT_SUFFIX .mp3
 
 ENV TMP_FOLDER /data/tmp/
 
-ENV KAFKA_BROKER 
-ENV KAFKA_CONSUMERGROUP_ID
+ENV KAFKA_BROKER kafkaservice:9093
+ENV KAFKA_CONSUMERGROUP_ID sarama_consumer
 ENV KAFKA_TOPIC_TOBUCKET toBucket
 ENV KAFKA_TOPIC_TOCORE toCore
-ENV KAFKA_TOPICPREFIX_HEARTBEAT heartbeat_
+ENV KAFKA_TOPIC_TOHEARTBEAT toHeartbeat
 ENV KAFKA_TOPIC_TOSTREAM toStream
 
 ENV STORAGE_PROJECT_ID keen-dispatch-263413

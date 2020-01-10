@@ -17,6 +17,10 @@ func UploadInputBLOB(c *gin.Context) {
 	}
 	filename := uuid.NewVoiceUUID() //use UUID here
 	fmt.Println(filename)
+	// TODO :
+	// create a new kafka topic here for the heartbeat. the topic name should be : heartbeat_<UUID>
+	// how to : https://stackoverflow.com/questions/44094926/creating-kafka-topic-in-sarama
+	//
 	if err := c.SaveUploadedFile(file, filename); err != nil {
 		c.String(http.StatusBadRequest, fmt.Sprintf("upload file err: %s", err.Error()))
 	}

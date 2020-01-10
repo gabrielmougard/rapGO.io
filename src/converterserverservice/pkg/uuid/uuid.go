@@ -1,8 +1,7 @@
 package uuid
 
 import (
-	"errors"
-	"os"
+
 	"rapGO.io/src/converterserverservice/pkg/setting"
 	"github.com/google/uuid"
 )
