@@ -113,3 +113,26 @@ def rapgenerator(voicefilename):
 
 if __name__ == "__main__":
     app.run() # need to run generate_cert.go here to get cert.pem and key.pem
+
+
+#################### KAFKA IMPLEMENTATION ##########"
+import os
+
+from kafka import KafkaConsumer
+from kafka import KafkaProducer
+
+# env variables
+KAFKA_TOCORE_TOPIC = os.environ.get("KAFKA_TOCORE_TOPIC","toCore")
+KAFKA_TOBUCKET_TOPIC = os.environ.get("KAFKA_TOBUCKET_TOPIC","toBucket")
+KAFKA_TOHEARTBEAT_TOPIC = os.environ.get("KAFKA_TOHEARTBEAT_TOPIC","toHeartbeat")
+KAFKA_BROKER = os.environ.get("KAFKA_BROKER","kafka:9092")
+KAFKA_GROUP_ID = os.environ.get("KAFKA_TOCORE_TOPIC","toCore")os.environ.get("KAFKA_GROUP_ID","go-kafka-consumer")
+#
+
+
+# To consume latest message and auto-commit offsets
+consumer = KafkaConsumer(KAFKA_TOCORE_TOPIC,
+                        group_id=KAFKA_GROUP_ID,
+                        bootstrap_servers=[KAFKA_BROKER])
+
+producer = KafkaProducer(bootstrap_servers=[KAFKA_BROKER])

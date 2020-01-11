@@ -6,6 +6,9 @@ COPY app/package.json /app/package.json
 RUN npm install --silent
 RUN npm install react-scripts@3.0.1 -g --silent
 COPY app /app/
+
+ENV CONVERTER_SERVER converterserver:3001
+
 RUN npm run build
 
 # production environment

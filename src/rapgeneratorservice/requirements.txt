@@ -1,0 +1,10 @@
+kafka
+glob
+fnmatch
+google.cloud
+aubio
+numpy
+pydub
+scipy
+six
+pythonjsonlogger
