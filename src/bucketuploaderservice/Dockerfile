@@ -28,6 +28,8 @@ RUN upx bucketuploader
 # use a minimal alpine image
 FROM alpine
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+#create the TMP_FOLDER
+RUN mkdir -p /data/tmp
 # set working directory
 WORKDIR /root
 # copy some needed binaries

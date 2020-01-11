@@ -29,26 +29,33 @@ services:
     # app part
   frontendservice:
     build: 
-      context: ../../src/
-      dockerfile: frontend/Dockerfile
+      context: ../../src/frontend
+      dockerfile: Dockerfile
     ports:
       - "80:80"
   
   converterserver:
     build:
-      context: ../../src/
-      dockerfile: converterserverservice/Dockerfile
+      context: ../../src/converterserverservice
+      dockerfile: Dockerfile
     ports:
       - "3001:3001"
     depends_on:
       - kafkaservice
     container_name: converterserver
+    volumes:
+      - shared-tmp-volume: /data/tmp
 
   bucketuploader:
     build:
-      context: ../../src/
-      dockerfile: bucketuploaderservice/Dockerfile
+      context: ../../src/bucketuploaderservice
+      dockerfile: Dockerfile
     
     depends_on:
       - kafkaservice
       - converterserver
+    volumes:
+      - shared-tmp-volume: /data/tmp
+
+volumes:
+  shared-tmp-volume:
