@@ -1,0 +1,63 @@
+version: '3.2'
+services:
+# https://github.com/RonnanSouza/kafka_environment/blob/master/docker-compose.yml
+  zookeeper:
+    image: wurstmeister/zookeeper:3.4.6
+    expose:
+      - "2181"
+    container_name: zookeeper
+
+  kafka:
+    image: wurstmeister/kafka:2.12-2.3.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    expose:
+      - "9093"
+    environment:
+      KAFKA_CREATE_TOPICS: "toBucket:1:1,toCore:1:1,toHeartbeat:1:1,toStream:1:1"
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:9092,OUTSIDE://0.0.0.0:9093
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+    container_name: kafka
+  
+    # app part
+  frontendservice:
+    build: 
+      context: ../../src/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    container_name: frontend
+  
+  converterserver:
+    build:
+      context: ../../src/converterserverservice
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    depends_on:
+      - kafka
+      - zookeeper
+    container_name: converterserver
+    volumes:
+      - "shared-tmp-volume:/data/tmp"
+
+  bucketuploader:
+    build:
+      context: ../../src/bucketuploaderservice
+      dockerfile: Dockerfile
+    
+    depends_on:
+      - kafka
+      - zookeeper
+      - converterserver
+    volumes:
+      - "shared-tmp-volume:/data/tmp"
+volumes:
+  shared-tmp-volume:

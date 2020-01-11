@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -13,11 +12,12 @@ import (
 	"rapGO.io/src/converterserverservice/routers"
 )
 
-func init() {
-	fswatcher.Setup()
-}
-
 func main() {
+	fmt.Println("Waiting for Kafka to setup...")
+	time.Sleep(100*time.Second) //security wait
+	fmt.Println("fswatcher setup...")
+
+	fswatcher.Setup()
 	gin.SetMode(setting.ServerRunMode())
 
 	routersInit  := routers.InitRouter()
@@ -34,7 +34,7 @@ func main() {
 		MaxHeaderBytes: maxHeaderBytes,
 	}
 
-	log.Printf("[info] start http server listening %s", endPoint)
+	fmt.Println("[info] start http server listening %s", endPoint)
 
 	server.ListenAndServe()
 }

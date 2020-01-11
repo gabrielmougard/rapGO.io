@@ -26,18 +26,18 @@ RUN strip --strip-unneeded bucketuploader
 RUN upx bucketuploader
 
 # use a minimal alpine image
-FROM alpine
-RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
-#create the TMP_FOLDER
-RUN mkdir -p /data/tmp
-# set working directory
-WORKDIR /root
-# copy some needed binaries
-COPY --from=builder /usr/lib/pkgconfig /usr/lib/pkgconfig
-# copy the binary from builder
-COPY --from=builder /go/src/rapGO.io/src/bucketuploaderservice/bucketuploader .
-# copy the private key for accessing the google cloud storage
-COPY --from=builder /go/src/rapGO.io/src/bucketuploaderservice/keen-dispatch.json .
+#FROM alpine
+#RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+##create the TMP_FOLDER
+#RUN mkdir -p /data/tmp
+## set working directory
+#WORKDIR /root
+## copy some needed binaries
+#COPY --from=builder /usr/lib/pkgconfig /usr/lib/pkgconfig
+## copy the binary from builder
+#COPY --from=builder /go/src/rapGO.io/src/bucketuploaderservice/bucketuploader .
+## copy the private key for accessing the google cloud storage
+#COPY --from=builder /go/src/rapGO.io/src/bucketuploaderservice/keen-dispatch.json .
 
 # define all the needed environment variables
 ENV INPUT_PREFIX input
@@ -47,7 +47,7 @@ ENV OUTPUT_SUFFIX .mp3
 
 ENV TMP_FOLDER /data/tmp/
 
-ENV KAFKA_BROKER kafkaservice:9093
+ENV KAFKA_BROKER kafka:9093
 ENV KAFKA_CONSUMERGROUP_ID sarama_consumer
 ENV KAFKA_TOPIC_TOBUCKET toBucket
 ENV KAFKA_TOPIC_TOCORE toCore

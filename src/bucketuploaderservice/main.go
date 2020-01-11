@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"time"
 
 	"rapGO.io/src/bucketuploaderservice/pkg/eventproc"
 )
@@ -12,6 +14,9 @@ func panicIfErr(err error) {
 }
 
 func main() {
+	fmt.Println("Waiting for Kafka to setup...")
+	time.Sleep(100*time.Second) //security wait
+	fmt.Println("eventproc setup...")
 
 	eventproc.ProcessEvents()
 

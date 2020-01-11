@@ -26,16 +26,17 @@ RUN strip --strip-unneeded converterserverservice
 RUN upx converterserverservice
 
 # use a minimal alpine image
-FROM alpine
-RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+#FROM alpine
+#RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+#RUN apk add --no-cache bash coreutils grep sed
 #create the TMP_FOLDER
 RUN mkdir -p /data/tmp
 # set working directory
-WORKDIR /root
+#WORKDIR /root
 # copy some needed binaries
-COPY --from=builder /usr/lib/pkgconfig /usr/lib/pkgconfig
+#COPY --from=builder /usr/lib/pkgconfig /usr/lib/pkgconfig
 # copy the binary from builder
-COPY --from=builder /go/src/rapGO.io/src/converterserverservice .
+#COPY --from=builder /go/src/rapGO.io/src/converterserverservice .
 # expose port
 EXPOSE 3001
 
@@ -52,7 +53,7 @@ ENV OUTPUT_SUFFIX .mp3
 
 ENV TMP_FOLDER /data/tmp/
 
-ENV KAFKA_BROKER kafkaservice:9093
+ENV KAFKA_BROKER kafka:9093
 ENV KAFKA_CONSUMERGROUP_ID sarama_consumer
 ENV KAFKA_TOPIC_TOBUCKET toBucket
 ENV KAFKA_TOPIC_TOCORE toCore
