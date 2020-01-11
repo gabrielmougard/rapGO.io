@@ -1,4 +1,4 @@
-version: '3.0'
+version: '3.2'
 services:
 # https://github.com/RonnanSouza/kafka_environment/blob/master/docker-compose.yml
   zookeeper:
@@ -44,7 +44,7 @@ services:
       - kafkaservice
     container_name: converterserver
     volumes:
-      - shared-tmp-volume: /data/tmp
+      - "shared-tmp-volume:/data/tmp"
 
   bucketuploader:
     build:
@@ -55,7 +55,6 @@ services:
       - kafkaservice
       - converterserver
     volumes:
-      - shared-tmp-volume: /data/tmp
-
+      - "shared-tmp-volume:/data/tmp"
 volumes:
   shared-tmp-volume:
