@@ -11,6 +11,8 @@ RUN xz -d -c /usr/local/upx-3.94-amd64_linux.tar.xz | \
 
 # install glide
 RUN go get github.com/Masterminds/glide
+# install cors (not glide compatible)
+RUN go get github.com/rs/cors
 # setup the working directory
 ENV PROJECT rapGO.io/src/converterserverservice
 WORKDIR /go/src/$PROJECT

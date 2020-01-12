@@ -3,30 +3,46 @@ package api
 import (
 	"net/http"
 	"fmt"
-	
-	"github.com/gin-gonic/gin"
+	"io"
+	"os"
+	"encoding/json"
 
+	"rapGO.io/src/converterserverservice/pkg/setting"
 	"rapGO.io/src/converterserverservice/pkg/uuid"
 
 )
 
-func UploadInputBLOB(c *gin.Context) {
-	file, err := c.FormFile("file")
-	if err != nil {
-		c.String(http.StatusBadRequest, fmt.Sprintf("get form err: %s", err.Error()))
-	}
-	filename := uuid.NewVoiceUUID() //use UUID here
-	fmt.Println(filename)
-	// TODO :
-	// create a new kafka topic here for the heartbeat. the topic name should be : heartbeat_<UUID>
-	// how to : https://stackoverflow.com/questions/44094926/creating-kafka-topic-in-sarama
-	//
-	if err := c.SaveUploadedFile(file, filename); err != nil {
-		c.String(http.StatusBadRequest, fmt.Sprintf("upload file err: %s", err.Error()))
-	}
-	c.String(http.StatusOK, fmt.Sprintf("File %s uploaded successfully.", file.Filename))
+type OutputUUID struct {
+	Status int `json:'status'`
+	OutputUIID string `json:'outputUUID'`
 }
 
-func TestService( c *gin.Context) {
-	c.String(http.StatusOK, fmt.Sprintf("Hello gin server !"))
+func UploadInputBLOB(w http.ResponseWriter, r *http.Request) {
+	r.ParseMultipartForm(32 << 20) // limit your max input length!
+    // in your case file would be fileupload
+    file, _, err := r.FormFile("file")
+    if err != nil {
+        panic(err)
+    }
+    defer file.Close()
+	filename := uuid.NewVoiceUUID() //use UUID here
+	out, err := os.Create(setting.TmpFolder()+filename)
+	if err != nil {
+		fmt.Printf("Unable to create the file for writing. Check your write access privilege")
+		return
+	}
+	defer out.Close()
+	_, err = io.Copy(out, file)
+	if err != nil {
+		fmt.Println(err)
+	}
+	res := OutputUUID{Status: 200, OutputUIID: filename}
+	js, err := json.Marshal(res)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type","application/json")
+	w.Write(js)
+
 }

@@ -13,6 +13,9 @@ RUN npm run build
 
 FROM mhart/alpine-node
 RUN yarn global add serve
+RUN apk add --update \
+    curl \
+    && rm -rf /var/cache/apk/*
 WORKDIR /app
 COPY --from=build /app/build .
 EXPOSE 80

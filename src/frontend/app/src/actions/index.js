@@ -5,10 +5,10 @@ export const getRap = (inputBLOB) => ({
     }
 });
 
-export const fetchRapEnded = (sucess,outputBLOB = null) => ({
+export const fetchRapEnded = (sucess,outputUUID = null) => ({
     type: 'FETCH_RAP_ENDED',
     payload: {
         sucess: sucess,
-        outputBLOB: outputBLOB
+        outputUUID: outputUUID
     }
 })

@@ -1,8 +1,9 @@
 package main 
 
 import (
-	"fmt"
+	//"fmt"
 	"net/http"
+	"github.com/rs/cors"
 	//"time"
 
 	//"github.com/gin-gonic/gin"
@@ -10,11 +11,13 @@ import (
 	//"rapGO.io/src/converterserverservice/pkg/fswatcher"
 	//"rapGO.io/src/converterserverservice/pkg/setting"
 	//"rapGO.io/src/converterserverservice/routers"
+	"rapGO.io/src/converterserverservice/routers/api"
+
 )
 
 func main() {
-	fmt.Println("Waiting for Kafka to setup...")
-	//time.Sleep(60*time.Second) //security wait
+	// fmt.Println("Waiting for Kafka to setup...")
+	// time.Sleep(60*time.Second) //security wait
 
 	// gin.SetMode(setting.ServerRunMode())
 
@@ -34,19 +37,12 @@ func main() {
 
 	// fmt.Println("[info] start http server listening %s", endPoint)
 
-	// server.ListenAndServe()
+	//server.ListenAndServe()
 	//fmt.Println("fswatcher setup...")
 	//fswatcher.Setup()
-	http.HandleFunc("/test", handler)
-	http.ListenAndServe(":3001", nil)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/upload", api.UploadInputBLOB)
+	handler := cors.Default().Handler(mux)
+	http.ListenAndServe(":3001", handler)
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
-	fmt.Println("hellllllooooo !")
-	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
-}
-
-func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
-}

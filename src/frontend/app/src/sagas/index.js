@@ -11,15 +11,16 @@ function* fetchRap(action) {
     data.append('file', inputBLOB.blob, "recording.mp3");
 
     try {
-        var response = yield call([axios, axios.post], 'http://converterserver:3001/test', data, { // http://converterserver:3001/upload
+
+        var response = yield call([axios, axios.post], 'http://localhost:3001/upload', data, { // http://converterserver:3001/upload
             headers: {
                 'Content-Type': `multipart/form-data; boundary=${data._boundary}`,
             }
         });
-        const { status, outputBLOB } = response.data
-        if (status == 200 && outputBLOB) {
-            console.log("[SAGA] : outputBLOB detected.");
-            yield put(fetchRapEnded(true, outputBLOB));
+        const { status, outputUUID } = response.data
+        if (status == 200 && outputUUID) {
+            console.log("[SAGA] : outputUUID detected.");
+            yield put(fetchRapEnded(true, outputUUID));
         } else {
             console.log("[SAGA] : error, status code is "+status)
             yield put(fetchRapEnded(false));

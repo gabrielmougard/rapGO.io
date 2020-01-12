@@ -5,3 +5,5 @@ import:
   - package: github.com/Shopify/sarama
     version: ^1.24.1
   - package: github.com/google/uuid
+  - package: github.com/rs/cors
+
