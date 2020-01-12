@@ -11,7 +11,7 @@ function* fetchRap(action) {
     data.append('file', inputBLOB.blob, "recording.mp3");
 
     try {
-        var response = yield call([axios, axios.post], 'http://'+ CONVERTER_SERVER + '/upload', data, {
+        var response = yield call([axios, axios.post], 'http://converterserver:3001/test', data, { // http://converterserver:3001/upload
             headers: {
                 'Content-Type': `multipart/form-data; boundary=${data._boundary}`,
             }

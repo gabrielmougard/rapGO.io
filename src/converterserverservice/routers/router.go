@@ -15,6 +15,7 @@ func InitRouter() *gin.Engine {
 	r.Use(gin.Recovery())
 
 	r.POST("/upload", api.UploadInputBLOB)
+	r.POST("/test", api.TestService)
 
 	return r
 }

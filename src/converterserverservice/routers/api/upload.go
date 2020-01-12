@@ -26,3 +26,7 @@ func UploadInputBLOB(c *gin.Context) {
 	}
 	c.String(http.StatusOK, fmt.Sprintf("File %s uploaded successfully.", file.Filename))
 }
+
+func TestService( c *gin.Context) {
+	c.String(http.StatusOK, fmt.Sprintf("Hello gin server !"))
+}

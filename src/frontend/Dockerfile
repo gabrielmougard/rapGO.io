@@ -11,10 +11,22 @@ ENV CONVERTER_SERVER converterserver:3001
 
 RUN npm run build
 
-# production environment
-FROM nginx:1.16.0-alpine
-COPY --from=build /app/build /usr/share/nginx/html
+FROM mhart/alpine-node
+RUN yarn global add serve
+WORKDIR /app
+COPY --from=build /app/build .
 EXPOSE 80
+CMD ["serve", "-p", "80", "-s", "."]
 
-ENV CONVERTER_SERVER converterserver:3001
-CMD ["nginx", "-g", "daemon off;"]
+
+## production environment
+#FROM nginx:1.16.0-alpine
+#COPY --from=build /app/build /usr/share/nginx/html
+## Copy custom configuration file from the current directory
+#COPY nginx.conf /etc/nginx/nginx.conf
+#
+#EXPOSE 80
+#
+#ENV CONVERTER_SERVER converterserver:3001
+#CMD ["nginx", "-g", "daemon off;"]
+#
