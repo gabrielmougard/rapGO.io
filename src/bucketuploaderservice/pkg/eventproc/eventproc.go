@@ -4,59 +4,15 @@ import (
 	"os"
 	"os/signal"
 	"fmt"
-	//"context"
+	"log"
 	"strings"
 
 	"github.com/Shopify/sarama"
 
+	"rapGO.io/src/bucketuploaderservice/pkg/bucket"
 	"rapGO.io/src/bucketuploaderservice/pkg/setting"
 
 )
-
-// func ProcessEvents() {
-// 	// Init config, specify appropriate version
-// 	config := sarama.NewConfig()
-// 	sarama.Logger = log.New(os.Stderr, "[sarama_logger]", log.LstdFlags)
-// 	config.Version = sarama.V2_1_0_0
-// 	// Start with a client
-// 	kafkaBroker := setting.KafkaBroker()
-// 	kafkaBrokers := []string{kafkaBroker} 
-// 	client, err := sarama.NewClient(kafkaBrokers, config)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	consumerGroupID := setting.KafkaConsumergroupID()
-// 	toBucketTopic := setting.ToBucketTopic()
-
-// 	kafkaTopics := []string{toBucketTopic} //We could listen to several topics
-// 	defer func() { _ = client.Close() }()
-// 	// Start a new consumer group
-
-// 	//group, err := sarama.NewConsumerGroupFromClient(consumerGroupID, client)
-// 	group, err := sarama.NewConsumerGroup(strings.Split(kafkaBroker,","), consumerGroupID, config)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	defer func() { _ = group.Close() }()
-// 	log.Println("Consumer up and running")
-// 	// Track errors
-// 	go func() {
-// 		for err := range group.Errors() {
-// 			fmt.Println("ERROR", err)
-// 		}
-// 	}()
-// 	// Iterate over consumer sessions.
-// 	ctx := context.Background()
-// 	for {
-// 		handler := ConsumerGroupHandler{}
-
-// 		err := group.Consume(ctx, kafkaTopics, handler)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 	}
-
-// }
 
 func ProcessEvents() {
 	config := sarama.NewConfig()
@@ -71,6 +27,17 @@ func ProcessEvents() {
 		panic(err)
 	}
 
+	//create a new BucketInterface (for google storage)
+	bi, err := setupBucketInterface()
+	if err != nil {
+		panic(err)
+	}
+
+	//create a new HeartBeatProducer
+	heartbeatProducer, err := setupHeartbeatProducer()
+	if err != nil {
+		panic(err)
+	}
 
 	defer func() {
 		if err := master.Close(); err != nil {
@@ -93,6 +60,7 @@ func ProcessEvents() {
 			select {
 			case msg := <-consumer:
 				fmt.Println("Received messages", string(msg.Key), string(msg.Value))
+				go HandleVoiceFile(bi, heartbeatProducer, msg)
 			case consumerError := <-errors:
 				fmt.Println("Received consumerError ", string(consumerError.Topic), string(consumerError.Partition), consumerError.Err)
 				doneCh <- struct{}{}
@@ -133,13 +101,32 @@ func consume(topics []string, master sarama.Consumer) (chan *sarama.ConsumerMess
 					if topic == setting.ToBucketTopic() {
 						consumers <- msg
 						fmt.Println("Got message on topic ", topic, msg.Value)
-					} else {
-						fmt.Println("topic not recognized : "+topic)
-					}
+					} 
 				}
 			}
 		}(topic, consumer)
 	}
 
 	return consumers, errors
+}
+
+func setupBucketInterface() (*bucket.BucketInterface, error) {
+	//bucket config
+	projectID := setting.StorageProjectID()
+	bucketName := setting.StorageBucketName()
+	setting.CheckStoragePath2PrivKey()
+
+	bucketInterface, err := bucket.NewBucketInterface(projectID, bucketName)
+	if err != nil {
+		panic(err)
+	}
+	return bucketInterface, nil
+}
+
+func setupHeartbeatProducer() (sarama.AsyncProducer, error) {
+	kafkaBroker := setting.KafkaBroker()
+	kafkaBrokers := []string{kafkaBroker}
+	config := sarama.NewConfig()
+	sarama.Logger = log.New(os.Stderr, "[sarama_logger_heartbeat]", log.LstdFlags)
+	return sarama.NewAsyncProducer(kafkaBrokers, config)
 }

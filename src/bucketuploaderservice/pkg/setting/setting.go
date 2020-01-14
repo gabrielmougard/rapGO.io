@@ -79,7 +79,7 @@ func ToCoreTopic() string {
 }
 
 func ToHeartbeatTopic() string {
-	v, ok := os.LookupEnv("KAFKA_TOPIC_HEARTBEAT")
+	v, ok := os.LookupEnv("KAFKA_TOPIC_TOHEARTBEAT")
 	if !ok {
 		panic(errors.New("the kafka topic toHeartbeat is not detected."))
 	}

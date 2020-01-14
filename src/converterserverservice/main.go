@@ -4,11 +4,12 @@ import (
 	//"fmt"
 	"net/http"
 	"github.com/rs/cors"
-	//"time"
+	"time"
+	"fmt"
 
 	//"github.com/gin-gonic/gin"
 
-	//"rapGO.io/src/converterserverservice/pkg/fswatcher"
+	"rapGO.io/src/converterserverservice/pkg/fswatcher"
 	//"rapGO.io/src/converterserverservice/pkg/setting"
 	//"rapGO.io/src/converterserverservice/routers"
 	"rapGO.io/src/converterserverservice/routers/api"
@@ -16,8 +17,8 @@ import (
 )
 
 func main() {
-	// fmt.Println("Waiting for Kafka to setup...")
-	// time.Sleep(60*time.Second) //security wait
+	fmt.Println("Waiting for Kafka to setup...")
+	time.Sleep(60*time.Second) //security wait
 
 	// gin.SetMode(setting.ServerRunMode())
 
@@ -39,10 +40,11 @@ func main() {
 
 	//server.ListenAndServe()
 	//fmt.Println("fswatcher setup...")
-	//fswatcher.Setup()
+	go fswatcher.Setup()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/upload", api.UploadInputBLOB)
 	handler := cors.Default().Handler(mux)
+	fmt.Println("Starting server on port 3001...")
 	http.ListenAndServe(":3001", handler)
 }
 

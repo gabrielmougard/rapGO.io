@@ -37,14 +37,14 @@ func Setup() {
 	            if event.Op&fslib.Create == fslib.Create {
 					log.Println("modified file:", event.Name)
 					switch strings.Split(event.Name,"_")[0] {
-					case setting.BasePrefix():
+					case setting.TmpFolder()+setting.InputPrefix():
 						//send to 'toBucket' and 'toCore'
 						go triggerBucket(producer, signals, event.Name)
-						go triggerCore(producer, signals, event.Name)
-					case setting.BaseSuffix():
+						//go triggerCore(producer, signals, event.Name)
+					case setting.TmpFolder()+setting.OutputPrefix():
 						//send to 'toBucket' and 'toStream'
 						go triggerBucket(producer, signals, event.Name)
-						go triggerStream(producer, signals, event.Name)
+						//go triggerStream(producer, signals, event.Name)
 					default:
 						log.Println("unknown prefix : "+strings.Split(event.Name,"_")[0])
 					}

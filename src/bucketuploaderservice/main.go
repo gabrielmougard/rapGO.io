@@ -15,7 +15,7 @@ func panicIfErr(err error) {
 
 func main() {
 	fmt.Println("Waiting for Kafka to setup...")
-	time.Sleep(60*time.Second) //security wait
+	time.Sleep(60*time.Second) //Wait for the leader election in kafka cluster
 	fmt.Println("eventproc setup...")
 
 	eventproc.ProcessEvents()

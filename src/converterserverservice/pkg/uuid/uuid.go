@@ -7,8 +7,8 @@ import (
 )
 
 func NewVoiceUUID() string {
-	basePrefix := setting.BasePrefix()
+	inputPrefix := setting.InputPrefix()
 	baseSuffix := setting.BaseSuffix()
 	uuid := uuid.New().String()
-	return basePrefix+"_"+uuid+baseSuffix //sth like input_xxxx-xxxx-xxxx-xxxx.mp3
+	return inputPrefix+"_"+uuid+baseSuffix //sth like input_xxxx-xxxx-xxxx-xxxx.mp3
 }

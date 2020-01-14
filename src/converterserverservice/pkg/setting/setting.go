@@ -37,10 +37,18 @@ func ServerWriteTimeout() string {
 	return v
 }
 
-func BasePrefix() string {
+func InputPrefix() string {
 	v, ok := os.LookupEnv("INPUT_PREFIX")
 	if !ok {
 		panic(errors.New("the input prefix is not detected."))
+	}
+	return v
+}
+
+func OutputPrefix() string {
+	v, ok := os.LookupEnv("OUTT_PREFIX")
+	if !ok {
+		panic(errors.New("the output prefix is not detected."))
 	}
 	return v
 }

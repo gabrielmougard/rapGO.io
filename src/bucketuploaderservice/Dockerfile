@@ -54,9 +54,9 @@ ENV KAFKA_TOPIC_TOCORE toCore
 ENV KAFKA_TOPIC_TOHEARTBEAT toHeartbeat
 ENV KAFKA_TOPIC_TOSTREAM toStream
 
-ENV STORAGE_PROJECT_ID keen-dispatch-263413
-ENV STORAGE_BUCKET_NAME rapgo-bucket-1
-ENV GOOGLE_APPLICATION_CREDENTIALS /root/keen-dispatch.json
+ENV STORAGE_PROJECT_ID tidy-hold-247521
+ENV STORAGE_BUCKET_NAME rapgo-bucket-2
+ENV GOOGLE_APPLICATION_CREDENTIALS /go/src/rapGO.io/src/bucketuploaderservice/rapgo-storage.json
 
 # run the binary
 ENTRYPOINT ["./bucketuploader"]
