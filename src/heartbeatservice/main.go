@@ -10,15 +10,17 @@ import (
 
 	"rapGO.io/src/heartbeatservice/api"
 	"rapGO.io/src/heartbeatservice/pkg/setting"
-	rbt "github.com/emirpasic/gods/trees/redblacktree"
+	"rapGO.io/src/heartbeatservice/pkg/states"
+
+
 
 )
 
-var statesTree *rbt.Tree
+var StatesTree *states.RbTree //global in-mem storage
 
 func init() {
 	//setup the states tree
-	statesTree = rbt.NewWithStringComparator()
+	StatesTree = states.NewRbTree()
 }
 func main() {
 	//API server
@@ -55,7 +57,7 @@ func main() {
 			select {
 			case msg := <-consumer:
 				fmt.Println("Received messages", string(msg.Key), string(msg.Value))
-				go HandleHeartbeat(statesTree, msg)
+				go HandleHeartbeat(msg)
 			case consumerError := <-errors:
 				fmt.Println("Received consumerError ", string(consumerError.Topic), string(consumerError.Partition), consumerError.Err)
 				doneCh <- struct{}{}
@@ -101,3 +103,4 @@ func consumeHeartbeat(master sarama.Consumer) (chan *sarama.ConsumerMessage, cha
 
 	return consumers, errors
 }
+

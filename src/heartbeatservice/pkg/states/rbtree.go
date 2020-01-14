@@ -1,5 +1,10 @@
 package states
 
+import (
+	"sync"
+
+	"github.com/gorilla/websocket"
+)
 // KeyComparison structure used as result of comparing two keys 
 type KeyComparison int8
 
@@ -37,9 +42,11 @@ type RbKey interface {
 // rbNode structure used for storing key and value pairs
 type rbNode struct {
     key RbKey
-    value interface{}
+    heartbeatDesc string
     color byte
-    left, right *rbNode
+	left, right *rbNode
+	
+	wsClient *websocket.Conn //client information for websocket communication
 }
 
 // RbTree structure
@@ -47,34 +54,21 @@ type RbTree struct {
     root *rbNode
     count int
     version uint32
-    onInsert InsertEvent
-    onDelete DeleteEvent
+
+	operations chan string
+	mu sync.Mutex
 }
-
-// DeleteEvent function used on Insert or Delete operations
-type DeleteEvent func(key RbKey, oldValue interface{}) (updatedValue interface{})
-
-// InsertEvent function used on Insert or Delete operations
-type InsertEvent func(key RbKey, oldValue interface{}, newValue interface{}) (updatedValue interface{})
 
 // NewRbTree creates a new RbTree and returns its address
 func NewRbTree() *RbTree {
     return &RbTree{}
 }
 
-// NewRbTreeWithEvents creates a new RbTree assigning its insert and delete events and returns its address
-func NewRbTreeWithEvents(onInsert InsertEvent, onDelete DeleteEvent) *RbTree {
-    return &RbTree{
-        onInsert: onInsert,
-        onDelete: onDelete,
-    }
-}
-
 // newRbNode creates a new rbNode and returns its address
-func newRbNode(key RbKey, value interface{}) *rbNode {
+func newRbNode(key RbKey, heartbeatDesc string) *rbNode {
     result := &rbNode{
         key: key,
-        value: value,
+        heartbeatDesc: heartbeatDesc,
         color: red,
     }
     return result
@@ -251,57 +245,57 @@ func (tree *RbTree) IsEmpty() bool {
 }
 
 // Min returns the smallest key in the tree.
-func (tree *RbTree) Min() (RbKey, interface{}) {
+func (tree *RbTree) Min() (RbKey, string) {
     if tree.root != nil {
         result := min(tree.root)
-        return result.key, result.value
+        return result.key, result.heartbeatDesc
     }
-    return nil, nil
+    return nil, ""
 } 
 
 // Max returns the largest key in the tree.
-func (tree *RbTree) Max() (RbKey, interface{}) {
+func (tree *RbTree) Max() (RbKey, string) {
     if tree.root != nil {
         result := max(tree.root)
-        return result.key, result.value
+        return result.key, result.heartbeatDesc
     }
-    return nil, nil
+    return nil, ""
 } 
 
 // Floor returns the largest key in the tree less than or equal to key
-func (tree *RbTree) Floor(key RbKey) (RbKey, interface{}) {
+func (tree *RbTree) Floor(key RbKey) (RbKey, string) {
     if key != nil && tree.root != nil {
         node := floor(tree.root, key)
         if node == nil {
-            return nil, nil
+            return nil, ""
         }
-        return node.key, node.value
+        return node.key, node.heartbeatDesc
     }
-    return nil, nil
+    return nil, ""
 }    
 
 // Ceiling returns the smallest key in the tree greater than or equal to key
-func (tree *RbTree) Ceiling(key RbKey) (RbKey, interface{}) {
+func (tree *RbTree) Ceiling(key RbKey) (RbKey, string) {
     if key != nil && tree.root != nil {
         node := ceiling(tree.root, key)
         if node == nil {
-            return nil, nil
+            return nil, ""
         }
-        return node.key, node.value
+        return node.key, node.heartbeatDesc
     }
-    return nil, nil
+    return nil, ""
 }
 
 // Get returns the stored value if key found and 'true', 
 // otherwise returns 'false' with second return param if key not found 
-func (tree *RbTree) Get(key RbKey) (interface{}, bool) {
+func (tree *RbTree) Get(key RbKey) (string, bool) {
     if key != nil && tree.root != nil {
         node := tree.find(key)
         if node != nil {
-            return node.value, true
+            return node.heartbeatDesc, true
         }
     }
-    return nil, false
+    return "", false
 }
 
 // find returns the node if key found, otherwise returns nil 
@@ -325,35 +319,30 @@ func (tree *RbTree) Exists(key RbKey) bool {
 }
 
 // Insert inserts the given key and value into the tree
-func (tree *RbTree) Insert(key RbKey, value interface{}) {
+func (tree *RbTree) Insert(key RbKey, heartbeatDesc string) {
     if key != nil {
         tree.version++
-        tree.root = tree.insertNode(tree.root, key, value);
+        tree.root = tree.insertNode(tree.root, key, heartbeatDesc);
         tree.root.color = black
         // tree.root.parent = nil
     }
 }
 
 // insertNode adds the given key and value into the node
-func (tree *RbTree) insertNode(node *rbNode, key RbKey, value interface{}) *rbNode {
+func (tree *RbTree) insertNode(node *rbNode, key RbKey, heartbeatDesc string) *rbNode {
     if node == nil {
         tree.count++
-        return newRbNode(key, value)
+        return newRbNode(key, heartbeatDesc)
     }
 
     switch key.ComparedTo(node.key) {
     case KeyIsLess:
-        node.left  = tree.insertNode(node.left,  key, value)
+        node.left  = tree.insertNode(node.left,  key, heartbeatDesc)
         // node.left.parent = node
     case KeyIsGreater:
-        node.right = tree.insertNode(node.right, key, value)
+        node.right = tree.insertNode(node.right, key, heartbeatDesc)
         // node.right.parent = node
-    default:
-        if tree.onInsert == nil {
-            node.value = value
-        } else {
-            node.value = tree.onInsert(key, node.value, value)
-        }
+
     }
     return balance(node)
 }
@@ -380,10 +369,10 @@ func (tree *RbTree) deleteNode(node *rbNode, key RbKey) *rbNode {
         }
         node.left = tree.deleteNode(node.left, key)
     } else {
-        if cmp == KeysAreEqual && tree.onDelete != nil {
-            value := tree.onDelete(key, node.value)
-            if value != nil {
-                node.value = value
+        if cmp == KeysAreEqual {
+            heartbeatDesc := node.heartbeatDesc
+            if heartbeatDesc != "" {
+                node.heartbeatDesc = heartbeatDesc
                 return node
             }
         }
@@ -405,7 +394,7 @@ func (tree *RbTree) deleteNode(node *rbNode, key RbKey) *rbNode {
 
             rm := min(node.right)
             node.key   = rm.key
-            node.value = rm.value
+            node.heartbeatDesc = rm.heartbeatDesc
             node.right = deleteMin(node.right)
 
             rm.left = nil

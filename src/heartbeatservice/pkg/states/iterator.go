@@ -27,7 +27,7 @@ type RbIterator interface {
     // is less than the given key
     LessThan(key RbKey) (int, error)
     // GetData returns the data stored on the iterator with the dataKey 
-    GetData(dataKey string) (interface{}, bool)
+    GetData(dataKey string) (string, bool)
     // GreaterOrEqual iterates on the items of the RbTree that the key of the item 
     // is greater or equal to the given key
     GreaterOrEqual(key RbKey) (int, error)
@@ -37,7 +37,7 @@ type RbIterator interface {
     // RemoveData deletes the data stored on the iterator with the dataKey 
     RemoveData(dataKey string)
     // SetData stores the data with the dataKey on the iterator 
-    SetData(dataKey string, value interface{})
+    SetData(dataKey string, heartbeatDesc string)
     // Tree returns the RbTree that the iterator is iterating on
     Tree() *RbTree
 }
@@ -49,7 +49,7 @@ type rbIterationContext struct {
     state int32
     version uint32
     callback RbIterationCallback
-    data map[string]interface{}
+    data map[string]string
 }
 
 const (
@@ -61,9 +61,9 @@ const (
 
 // RbIterationCallback is the function used to by the RbIterator 
 // with will be called on iteration match
-type RbIterationCallback func(iterator RbIterator, key RbKey, value interface{})
+type RbIterationCallback func(iterator RbIterator, key RbKey, heartbeatDesc string)
 
-func nilIterationCallback(iterator RbIterator, key RbKey, value interface{}) {
+func nilIterationCallback(iterator RbIterator, key RbKey, heartbeatDesc string) {
     return
 }
 
@@ -81,7 +81,7 @@ func (tree *RbTree) NewRbIterator(callback RbIterationCallback) (RbIterator, err
         version: tree.version,
         callback: callback,
         state: iteratorReady,
-        data: make(map[string]interface{}),
+        data: make(map[string]string),
     }, nil
 }
 
@@ -124,7 +124,7 @@ func (context *rbIterationContext) ClearData() {
     context.Unlock()
 }
 
-func (context *rbIterationContext) GetData(dataKey string) (interface{}, bool) {
+func (context *rbIterationContext) GetData(dataKey string) (string, bool) {
     context.Lock()
     data := context.data
     context.Unlock()
@@ -133,16 +133,16 @@ func (context *rbIterationContext) GetData(dataKey string) (interface{}, bool) {
         result, ok := data[dataKey]
         return result, ok
     }
-    return nil, false
+    return "", false
 }
 
-func (context *rbIterationContext) SetData(dataKey string, value interface{}) {
+func (context *rbIterationContext) SetData(dataKey string, heartbeatDesc string) {
     context.Lock()
     data := context.data
     context.Unlock()
     
     if data != nil {
-        data[dataKey] = value
+        data[dataKey] = heartbeatDesc
     }
 }
 
@@ -218,7 +218,7 @@ func (context *rbIterationContext) walkAll(node *rbNode) {
     }
     
     context.incrementCount()
-    context.callback(context, node.key, node.value)
+    context.callback(context, node.key, node.heartbeatDesc)
     if !context.inWalk() {
         return
     }
@@ -253,7 +253,7 @@ func (context *rbIterationContext) Between(loKey RbKey, hiKey RbKey) (count int,
     case KeysAreEqual:
         node := tree.find(loKey)
         if node != nil {
-            context.callback(context, node.key, node.value)
+            context.callback(context, node.key, node.heartbeatDesc)
             return 1, nil
         }
         return 0, nil
@@ -288,7 +288,7 @@ func (context *rbIterationContext) walkBetween(node *rbNode, loKey RbKey, hiKey 
     cmpHi := int8(hiKey.ComparedTo(node.key))
     if cmpLo <= zeroOrEqual && cmpHi >= zeroOrEqual {
         context.incrementCount()
-        context.callback(context, node.key, node.value)
+        context.callback(context, node.key, node.heartbeatDesc)
         if !context.inWalk() {
             return
         }
@@ -343,7 +343,7 @@ func (context *rbIterationContext) walkLessOrEqual(node *rbNode, key RbKey) {
     cmp := node.key.ComparedTo(key)
     if cmp == KeyIsLess || cmp == KeysAreEqual {
         context.incrementCount()
-        context.callback(context, node.key, node.value)
+        context.callback(context, node.key, node.heartbeatDesc)
         if !context.inWalk() {
             return
         }
@@ -396,7 +396,7 @@ func (context *rbIterationContext) walkGreaterOrEqual(node *rbNode, key RbKey) {
         }
         
         context.incrementCount()
-        context.callback(context, node.key, node.value)
+        context.callback(context, node.key, node.heartbeatDesc)
         if !context.inWalk() {
             return
         }
@@ -448,7 +448,7 @@ func (context *rbIterationContext) walkLessThan(node *rbNode, key RbKey) {
     
     if node.key.ComparedTo(key) == KeyIsLess {
         context.incrementCount()
-        context.callback(context, node.key, node.value)
+        context.callback(context, node.key, node.heartbeatDesc)
         if !context.inWalk() {
             return
         }
@@ -500,7 +500,7 @@ func (context *rbIterationContext) walkGreaterThan(node *rbNode, key RbKey) {
         }
         
         context.incrementCount()
-        context.callback(context, node.key, node.value)
+        context.callback(context, node.key, node.heartbeatDesc)
         if !context.inWalk() {
             return
         }
