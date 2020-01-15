@@ -2,8 +2,6 @@ package states
 
 import (
 	"sync"
-
-	"github.com/gorilla/websocket"
 )
 // KeyComparison structure used as result of comparing two keys 
 type KeyComparison int8
@@ -45,8 +43,8 @@ type rbNode struct {
     heartbeatDesc string
     color byte
 	left, right *rbNode
-	
-	wsClient *websocket.Conn //client information for websocket communication
+
+	descChan chan string
 }
 
 // RbTree structure
@@ -55,8 +53,7 @@ type RbTree struct {
     count int
     version uint32
 
-	operations chan string
-	mu sync.Mutex
+	Mu sync.Mutex
 }
 
 // NewRbTree creates a new RbTree and returns its address
@@ -69,8 +66,10 @@ func newRbNode(key RbKey, heartbeatDesc string) *rbNode {
     result := &rbNode{
         key: key,
         heartbeatDesc: heartbeatDesc,
-        color: red,
-    }
+		color: red,
+		descChan: make(chan string),
+	}
+	result.descChan <- heartbeatDesc //write to channel
     return result
 }
 
@@ -234,6 +233,14 @@ func deleteMin(node *rbNode) *rbNode {
     return balance(node)
 }
 
+func (node *rbNode) GetDescChan() chan string {
+	if node.descChan != nil {
+		return node.descChan
+	} else {
+		return nil
+	}
+}
+
 // Count returns if count of the nodes stored.
 func (tree *RbTree) Count() int {
     return tree.count
@@ -296,6 +303,32 @@ func (tree *RbTree) Get(key RbKey) (string, bool) {
         }
     }
     return "", false
+}
+
+//GetNode returns the node with the associated key.
+// if the node is found it returns a pointer to this node and 'true'
+// else it returns nil and 'false'
+func (tree *RbTree) GetNode(key RbKey) (*rbNode, bool) {
+	if key != nil && tree.root != nil {
+		node := tree.find(key)
+		if node != nil {
+			return node, true
+		} else {
+			return nil, false
+		}
+	}
+	return nil, false
+}
+
+//Change the value of a node
+func (tree *RbTree) EditDesc(key RbKey, newHeartbeatDesc string) {
+	if key != nil && tree.root != nil {
+		node := tree.find(key)
+		if node != nil {
+			node.descChan <- newHeartbeatDesc
+			node.heartbeatDesc = newHeartbeatDesc
+		}
+	}
 }
 
 // find returns the node if key found, otherwise returns nil 

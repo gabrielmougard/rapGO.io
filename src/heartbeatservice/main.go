@@ -16,11 +16,11 @@ import (
 
 )
 
-var StatesTree *states.RbTree //global in-mem storage
+var statesTree *states.RbTree //global in-mem storage
 
 func init() {
 	//setup the states tree
-	StatesTree = states.NewRbTree()
+	statesTree = states.NewRbTree()
 }
 func main() {
 	//API server
@@ -57,7 +57,7 @@ func main() {
 			select {
 			case msg := <-consumer:
 				fmt.Println("Received messages", string(msg.Key), string(msg.Value))
-				go HandleHeartbeat(msg)
+				go HandleHeartbeat(statesTree, msg)
 			case consumerError := <-errors:
 				fmt.Println("Received consumerError ", string(consumerError.Topic), string(consumerError.Partition), consumerError.Err)
 				doneCh <- struct{}{}
