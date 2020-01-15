@@ -1,0 +1,5 @@
+package: github.com/gabrielmougard/rapGO.io
+import:
+  - package: github.com/Shopify/sarama
+  - package: github.com/gorilla/websocket
+  - package: github.com/gorilla/mux
