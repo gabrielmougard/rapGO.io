@@ -1,1 +1,6 @@
 /vendor
+
+#credentials
+
+keen-dispatch.json
+rapgo-storage.json
