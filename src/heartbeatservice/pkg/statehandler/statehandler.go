@@ -1,7 +1,6 @@
 package statehandler
 
 import (
-	"strings"
 
 	"rapGO.io/src/heartbeatservice/pkg/states"
 	"rapGO.io/src/heartbeatservice/pkg/setting"
@@ -11,9 +10,9 @@ import (
 
 func HandleHeartbeat(tree *states.RbTree, msg *sarama.ConsumerMessage) {
 	//get the uuid to from the key
-	msgList := strings.Split(string(msg.Value),"_")
-	uuid := msgList[0]
-	desc := msgList[1]
+
+	uuid := string(msg.Key)
+	desc := string(msg.Value)
 
 	key := states.StringKey(uuid)
 	//lock
@@ -34,7 +33,7 @@ func HandleHeartbeat(tree *states.RbTree, msg *sarama.ConsumerMessage) {
 }
 
 func isLastHeartbeat(heartbeatDesc string) bool {
-	if heartbeatDesc = setting.LastHeartbeatDesc() {
+	if heartbeatDesc == setting.LastHeartbeatDesc() {
 		return true
 	} else {
 		return false

@@ -1,4 +1,4 @@
-kafka
+confluent-kafka
 glob
 fnmatch
 google.cloud

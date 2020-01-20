@@ -137,14 +137,23 @@ RUN set -ex; \
 ### APP PART ###
 ################
 
+# IMPORTANT ==> Since I use the Confluent Kafka client
+# I need to install librdkafka
+
+
+
 # get packages
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Enable unbuffered logging
-ENV PYTHONUNBUFFERED=1
-
 WORKDIR /rapgenerator
+
+#env variables
+
+# Enable unbuffered logging
+ENV PYTHONUNBUFFERED=1 
+ENV GOOGLE_APPLICATION_CREDENTIALS /rapgenerator/rapgo-storage.json
+
 
 # Add the application
 COPY . .
