@@ -16,13 +16,19 @@ import alignment
 
 class MusicAssembler:
 
-    def __init__(self,uuidBeatData,voicefile):
-        self.uuidBeatData  = uuidBeatData
+    def __init__(self,voicefile):
+        #voicefile is under the form : input_<UUID>.mp3
+        #we can find the metadata innside TMP_FOLDER/metadata_<UUID>
         self.voicefile = voicefile
+        self.voiceUUID = self.voicefile.split("_")[1].split(".")[0]
+        self.TMP_FOLDER = os.environ.get("TMP_FOLDER", "/data/tmp/")
+        self.METADATA_FOLDER = self.TMP_FOLDER+os.environ.get("METADATA_FOLDER_PREFIX","metadata_")+self.voiceUUID+"/"
 
+        self.uuidBeatData  = uuidBeatData
         self.beatsDistribution = [] #same dim as self.beatsIntensity
         self.beatsIntensity = []
         self.verse_interval = []
+
         self.beatfileDuration = 0.0  #duration of beat file in seconds
         self.bpm = self.__getBPM() #average bpm of the beatfile
         self.randomPadding = math.ceil((self.bpm/60)/(random.randint(1,3))) # integer representing how many beat we should skip for the next chunk
@@ -164,7 +170,7 @@ class MusicAssembler:
         without the silence parts.
         """
         print("[VOICE_SPLITTER] Starting voice splitting...")
-        voice = pydub.AudioSegment.from_mp3(self.voicefile)
+        voice = pydub.AudioSegment.from_mp3(self.TMP_FOLDER+self.voicefile)
         print("[VOICE_SPLITTER] voice dBFS : "+str(voice.dBFS))
         dBFS = voice.dBFS
         # Split track where the silence is 1 second or more and get chunks using the imported function
@@ -180,9 +186,8 @@ class MusicAssembler:
         print("[VOICE_SPLITTER] "+str(len(chunks))+" chunks generated.")
         for chunk in chunks:
             self.chunks.append(chunk)
-        print("BEFORE PICKLE DURATION : "+str(self.chunks[0].duration_seconds))
-        with open("testPickle/chunks","wb") as f:
-            pickle.dump(self.chunks, f)
+        #with open(self.METADATA_FOLDER+self.CHUNKS_PATH,"wb") as f:
+        #    pickle.dump(self.chunks, f)
         print("[VOICE_SPLITTER] voice splitting has ended.")
 
     def __match_target_amplitude(self,aChunk, target_dBFS):
@@ -279,40 +284,44 @@ class MusicAssembler:
         print("Merger finished ")
 
     def run(self):
-        DATA_FOLDER = os.environ.get("SOUNDS_FOLDER", "../voiceTempStorage/")
-        files = glob.glob(DATA_FOLDER+"*")
-        for filename in fnmatch.filter(files, self.uuidBeatData):
-            prefix = filename.split("_")[1]
+
+        from os import listdir
+        from os.path import isfile, join
+        metadata = [f for f in listdir(self.METADATA_FOLDER) if isfile(join(self.METADATA_FOLDER, f))]
+
+        for f in metdata:
+            prefix = f.split("_")[0]
             if prefix == "duration":
-                with open(DATA_FOLDER+filename, "rb") as f_in:
-                    self.beatfileDuration = pickle.load(DATA_FOLDER+filename)
+                with open(self.METADATA_FOLDER+f, "rb") as f_in:
+                    self.beatfileDuration = pickle.load(self.METADATA_FOLDER+f)
             elif prefix == "bpm":
-                with open(DATA_FOLDER+filename, "rb") as f_in:
-                    self.bpm = pickle.load(DATA_FOLDER+filename)
+                with open(self.METADATA_FOLDER+f, "rb") as f_in:
+                    self.bpm = pickle.load(self.METADATA_FOLDER+f)
             elif prefix == "sound":
                 print("voicefile detected !")
             elif prefix == "tempDist":
-                with open(DATA_FOLDER+filename, "rb") as f_in:
-                    self.beatsDistribution = pickle.load(DATA_FOLDER+filename)
+                with open(self.METADATA_FOLDER+f, "rb") as f_in:
+                    self.beatsDistribution = pickle.load(self.METADATA_FOLDER+f)
             elif prefix == "tempInt":
-                with open(DATA_FOLDER+filename, "rb") as f_in:
-                    self.beatsIntensity = pickle.load(DATA_FOLDER+filename)
+                with open(self.METADATA_FOLDER+f, "rb") as f_in:
+                    self.beatsIntensity = pickle.load(self.METADATA_FOLDER+f)
             elif prefix == "verseInterval":
-                with open(DATA_FOLDER+filename, "rb") as f_in:
-                    self.verse_interval = pickle.load(DATA_FOLDER+filename)
+                with open(self.METADATA_FOLDER+f, "rb") as f_in:
+                    self.verse_interval = pickle.load(self.METADATA_FOLDER+f)
             else:
                 print("the prefix found does not match")
+
         #the attributes are loaded, we can begin the voice spliter
         self.voice_splitter()
+        # merge voice chunks with beats
         self.merger()
-        
-        
 
-BEAT_PATH  = "testBeat/"
-VOICE_PATH = "testVoice/"
 
-ma = MusicAssembler(BEAT_PATH+"song_548ba4d4-64a3-4db1-ba2e-f9037c535932.mp3",VOICE_PATH+"greatSpeech.mp3")
-ma.getBeats()
-ma.verse_detector()
-ma.voice_splitter()
-ma.merger()
+#BEAT_PATH  = "testBeat/"
+#VOICE_PATH = "testVoice/"
+
+#ma = MusicAssembler(BEAT_PATH+"song_548ba4d4-64a3-4db1-ba2e-f9037c535932.mp3",VOICE_PATH+"greatSpeech.mp3")
+#ma.getBeats() ==> will be used by the ingestion engine
+#ma.verse_detector() ==> will be used by the ingestion engine
+#ma.voice_splitter()
+#ma.merger()

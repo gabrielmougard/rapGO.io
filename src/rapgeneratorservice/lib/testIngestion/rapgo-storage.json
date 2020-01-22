@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "tidy-hold-247521",
+  "private_key_id": "dc8fc5b3e3bc99d93f82c91b62a5d2556f1c415f",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDTadO8hpqYUpae\nIglKyk022FXJTlYlpEJbVp1UpLJ3hd0YuCcqmmxJzcJJvTUtSMYc/iu3WqoIixRx\nXYkqJ05eKd1LaHqaQ8AzJfwhIGNxfTtKBisv6xg2qytzXcNEehgr0941xzDhrojH\nq3owaPmfCqW6/kjg6Pt5JDara3ypzTJiNHxg0O7/Es0aVyImX5I598HdjVjNmfUi\nIQEfbilgXHva+1M4Mte0PfOzKA0jnAtT3MQeRMBHzwkApGDfjrACL2EfIvT7XVKi\n9a3GmqkmVATmndVujjdKgs/U3zCr9MmiSCknilROwbV7gemWOekw3TZ140lW1rKy\nFZv4KOWJAgMBAAECggEAALK+jg263PpeLsFLWwGoCWeq1jJ50CNYhMIKQFBstnd0\nC+zacLSw98D84Q7MsUWYQehBb19duiwpo8nDvVE76luy0Lx/J5tGHsiuOH3Jjy3z\nJYL+0KFBQBsxgRlentZjDvA4MW8NpWLxSnsVKuSmwC1+mi8NswI8pChy540jxZg7\nPxuxGk/KhsFDVkBCp3sHVNSyerM+rk23gw4GNsjePsxLh+Vjd3G+vA5QAAurYgzp\nDxBP1eJVOvtN2jdmLKSDXa0+WBGaykN5t4PpXk/kS03ntDWeZLxkBXKWkYoLp+sc\nZAP/Qb5D/9yuIjmMKLqk7KJdiuakgnCDhzMHUc8SsQKBgQD1HA6CQ2f5YlwHUbfo\naQ4yUrQxqGis/oM18lyeq+wRwR0Nnn3GD3nAtQQKXidxsuQXEHQ69in53FBvyFB5\nr+8EvvOOIEImhMQDYKZquukStxuy7SuIZXgDksooSj2BJihl7Oqra4jie2maB574\n2dg3+IuNoBYSr9mCIf28WW9t1wKBgQDczoAkbU414uB0WrVIw7z276QM+lT54QRN\nx/iAgkLYaUDhqDdXFOQ+65bjY5YMAGeHexW7IEiBDdG4A1UEkvM9b7hiAIQPzUhh\nRip4qXr9XV/d7eT4xamLbriiqOtxRhL9L2MVK7/HGHQ8Sa87143+0iDTflJhALga\nTGmG19IbnwKBgArDhqeVyjUbaqsvnYHpSyROmXcszBv8uUpfME4Pgrhs4Je+hAt0\nloYt7NV/uP+3OWkB4fjM4p8EW8vs4gvV/AsbT5rIM995KRp03hoFx0J5JBBBdg3x\nVsnhYltOl1Damh+PveZ1PHelr8eB2itXdbVPhuFbTFzZuBWM5JWm38vVAoGBANuy\nu92CxKbpLtuWxXm5CHPKzTf8fECEm3uo1KFI+qnJUD022plSuCfC0Uc+9zTJ0jkD\nRwQBgyKlVV36MsVyUYN3fcZFLSFr5/Chl/Cm8TDXj2OKKKE+SwvpBt0RpfH2/z3b\nwIJ4HUFEG6NAzZKFT0uUWAUXU3Ag/w1rqjP42Z2RAoGBAMak56Ap//exPBnzjodc\nebOkbVIIu5oG9IZ41fpXYMJwrXz1BlKhQlFU0WLyjrbh7B1CpKg/mC7jt3C3kH9s\n0fHlBKS5JEjryxWyOU/zpQqf8E6nqflwcgeRdIkM43WOPgIaXGhQgtQtSw0RA9pa\n2agzlVQvC/mV52NiKs5pwylY\n-----END PRIVATE KEY-----\n",
+  "client_email": "rapgo-bucket@tidy-hold-247521.iam.gserviceaccount.com",
+  "client_id": "111553199318042820282",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/rapgo-bucket%40tidy-hold-247521.iam.gserviceaccount.com"
+}

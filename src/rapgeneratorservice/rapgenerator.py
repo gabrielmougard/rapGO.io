@@ -56,7 +56,7 @@ def to_bucket(filename_local, filename_bucket):
     """
     Send the generated data to the bucket
     """
-    bucket = storage_client.get_bucket(BUCKET_NAME)
+    bucket = storage_client.get_bucket(STORAGE_BUCKET_NAME)
     blob = bucket.blob(filename_bucket)
     try:
         blob.upload_from_filename(filename_local)
@@ -71,7 +71,7 @@ def bucket_download(bucket, source_filename, destination_file_name):
 def getRandomBeatData(producer, voiceUUID):
     '''
     Connect to bucket and retrieve a random beatFile with its associated metadata.
-    Then, get the binaries of the file and save it inside /data/sounds/ folder with the name
+    Then, get the binaries of the file and save it inside TMP_FOLDER folder with the name
     `beat_<filenameUUID>.mp3`. Finally, return `beat_<filenameUUID>.mp3` as a string.
     '''
     producer.produce(KAFKA_TOHEARTBEAT_TOPIC, key=voiceUUID, value="Fetching metadata...")
@@ -80,10 +80,10 @@ def getRandomBeatData(producer, voiceUUID):
     random_uuid = random.choice([blob.name for blob in blobs]).split("_")[1].split(".")[0]
     metadata_folder_prefix = os.environ.get("METADATA_FOLDER_PREFIX","metadata_")
     bucket = storage_client.get_bucket(STORAGE_BUCKET_NAME)
-    metadata_prefixes = ["duration_", "bpm_", "sound_", "tempDist_", "tempInt_", "verseInterval_"]
+    metadata_prefixes = ["duration_", "bpm_", "beat_", "tempDist_", "tempInt_", "verseInterval_"]
     thread_list = list()
     for p in metadata_prefixes:
-        if p == "sound_":
+        if p == "beat_":
             source_filename = "beat_"+p+random_uuid+".mp3"
         else: # it's binary objects
             source_filename = "beat_"+p+random_uuid
@@ -130,7 +130,7 @@ def processToCoreMsg(message, producer):
     getRandomBeatData(producer, voiceUUID) #fetching the needed metadata and write them in TMP_FOLDER/metadata_<UUID>/ folder
 
     # MusicAssembler in the core processing class
-    ma = MusicAssembler(message.value(), producer)
+    ma = MusicAssembler(message.value())
     outputfilename = ma.run() #Run the process. If successful, it return the output filename which should be 'output_<UUID>.mp3'
 
     if (outputfilename):
