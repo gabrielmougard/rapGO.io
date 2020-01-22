@@ -29,6 +29,7 @@ class MusicAssembler:
         self.beatsIntensity = []
         self.verse_interval = []
 
+        self.beatfile = 
         self.beatfileDuration = 0.0  #duration of beat file in seconds
         self.bpm = self.__getBPM() #average bpm of the beatfile
         self.randomPadding = math.ceil((self.bpm/60)/(random.randint(1,3))) # integer representing how many beat we should skip for the next chunk
@@ -247,14 +248,14 @@ class MusicAssembler:
         """
         
         ### ONLY FOR TESTING ###
-        self.beatsDistribution = pickle.load(open("testPickle/beatDistribution","rb"))
-        self.verse_interval = pickle.load(open("testPickle/verseInterval","rb"))
-        self.chunks = pickle.load(open("testPickle/chunks","rb"))
+        #self.beatsDistribution = pickle.load(open("testPickle/beatDistribution","rb"))
+        #self.verse_interval = pickle.load(open("testPickle/verseInterval","rb"))
+        #self.chunks = pickle.load(open("testPickle/chunks","rb"))
         ########################
         soundPaddings = self.__get_sound_paddings()
         print("[VOICE MERGER] the sound padding are : "+str(soundPaddings))
         print("[VOICE MERGER] verse distribution : "+str(self.verse_interval))
-        mergedResult = pydub.AudioSegment.from_mp3(self.beatfile) #the final result (for now, contains only the beatfile but the chunks will be merged progressively)
+        mergedResult = self.__assembler() #the final result (for now, contains only the beatfile but the chunks will be merged progressively)
         
         chunkNumber = 0
         beatCounted = 0
@@ -315,6 +316,18 @@ class MusicAssembler:
         self.voice_splitter()
         # merge voice chunks with beats
         self.merger()
+    
+    def __assembler(self):
+        """
+        Reassemble the chunks together to form the raw beat pydub.AudioSegment object
+        """
+        chunkList = glob.glob(self.METADATA_FOLDER+"beatchunk*")
+        uuid = chunkList[0].split("_")[1]
+        chunkList.sort()
+        res = pydub.AudioSegment.empty()
+        for c in chunkList:
+            res += pickle.load(open(c,"rb"))
+        return res
 
 
 #BEAT_PATH  = "testBeat/"

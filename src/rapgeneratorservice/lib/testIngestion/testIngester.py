@@ -149,7 +149,7 @@ def upload(filename_local, filename_bucket):
     """
     Send the generated data to the bucket
     """
-    print("starting uploading to bucket...")
+    print("starting uploading "+filename_local+"to bucket...")
     bucket = storage_client.get_bucket(STORAGE_BUCKET_NAME)
     blob = bucket.blob(filename_bucket)
     
@@ -227,17 +227,22 @@ def run(beatfile):
 
     #upload
     for file in glob.glob("*_"+uuid+"*"):
-        upload(file,file)
+        if file != "beat_"+uuid+".mp3": #we do not upload the mp3 since we would timeout
+            upload(file,file)
 
 
 if __name__ == "__main__":
     # for aubio : sudo apt-get install python3-aubio python-aubio aubio-tools
 
     # list all the available beat in the current folder to be ingested.
-    beats = glob.glob("beat_*.mp3")
-    threadList = []
+    beats = glob.glob("beat_*.mp3") # for now we take only one file
+    #threadList = []
     #run the ingestion 
-    for b in beats:
-        threadList.append(threading.Thread(target=run,args=(b,)))
-    for t in threadList:
-        t.start()
+    #for b in beats:
+    #    threadList.append(threading.Thread(target=run,args=(b,)))
+    #for t in threadList:
+    #    t.start()
+    startTime = time.time()
+    run(beats[1])
+    endTime = time.time()
+    print("song ingested in : "+str(endTime-startTime)+" secs.")
