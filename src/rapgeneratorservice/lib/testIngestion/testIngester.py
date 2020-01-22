@@ -210,8 +210,6 @@ def assembler():
     #exportation
     res.export("assembled_"+uuid+".mp3", format="mp3")
 
-
-
 def run(beatfile):
     getBeats(beatfile)
     getBPM(beatfile)
@@ -229,7 +227,6 @@ def run(beatfile):
     for file in glob.glob("*_"+uuid+"*"):
         if file != "beat_"+uuid+".mp3": #we do not upload the mp3 since we would timeout
             upload(file,file)
-
 
 if __name__ == "__main__":
     # for aubio : sudo apt-get install python3-aubio python-aubio aubio-tools
