@@ -4,7 +4,6 @@ WORKDIR /rapgenerator
 COPY . .
 
 #install python dependencies (in requirements.txt)
-#RUN apt-get install python3-aubio python-aubio aubio-tools
 RUN apt-get update \
  && apt-get install -y \
  coreutils \
@@ -20,7 +19,8 @@ RUN apt-get update \
  yasm \
  ffmpeg
 
-
+#aubio is a bit special, so I prefer to install it with apt-get.
+RUN apt-get install -y python3-aubio python-aubio aubio-tools
 RUN pip3 install -r requirements.txt
 
 #Environment variables
@@ -35,5 +35,5 @@ ENV STORAGE_PROJECT_ID tidy-hold-247521
 ENV GOOGLE_APPLICATION_CREDENTIALS /rapgenerator/rapgo-storage.json
 
 ENV TMP_FOLDER /data/tmp/
-
-ENTRYPOINT ["python3", "rapgenerator.py"]
+ENV METADATA_FOLDER_PREFIX metadata_
+ENTRYPOINT ["python3","-u","rapgenerator.py"]

@@ -1,4 +1,4 @@
-import phase_vocoder as pvoc
+import lib.phase_vocoder as pvoc
 import numpy as np 
 import math
 import random

@@ -12,7 +12,7 @@ import numpy as np
 import pydub
 from pydub.silence import split_on_silence
 from pydub.silence import detect_nonsilent
-import alignment
+import lib.alignment
 
 class MusicAssembler:
 
@@ -283,6 +283,7 @@ class MusicAssembler:
         # final step : exportation of the result under the defined output file format
         self.__exportMergedSound(mergedResult)
         print("Merger finished ")
+        return True
 
     def run(self):
 
@@ -315,7 +316,8 @@ class MusicAssembler:
         #the attributes are loaded, we can begin the voice spliter
         self.voice_splitter()
         # merge voice chunks with beats
-        self.merger()
+        res = self.merger()
+        return res
     
     def __assembler(self):
         """

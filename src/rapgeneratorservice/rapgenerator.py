@@ -14,33 +14,6 @@ from confluent_kafka import Producer
 
 from lib.musicAssembler import MusicAssembler #The core™ lib !!
 
-print("Waiting for kafka cluster to start...")
-time.sleep(50) # secured delay for the kafka cluster to setup (leader election can take some time)
-
-# env variables
-KAFKA_TOCORE_TOPIC = os.environ.get("KAFKA_TOCORE_TOPIC","toCore")
-KAFKA_TOBUCKET_TOPIC = os.environ.get("KAFKA_TOBUCKET_TOPIC","toBucket")
-KAFKA_TOHEARTBEAT_TOPIC = os.environ.get("KAFKA_TOHEARTBEAT_TOPIC","toHeartbeat")
-KAFKA_BROKER = os.environ.get("KAFKA_BROKER","kafka:9092")
-KAFKA_GROUP_ID = os.environ.get("KAFKA_GROUP_ID","go-kafka-consumer")
-STORAGE_BUCKET_NAME = os.environ.get('STORAGE_BUCKET_NAME', 'rapgo-bucket-2')
-TMP_FOLDER = os.environ.get('TMP_FOLDER', '/data/tmp/')
-
-#setup the producer and the consumer
-confProducer = {'bootstrap.servers': KAFKA_BROKER, 'client.id': socket.gethostname()}
-confConsumer = {'bootstrap.servers': KAFKA_BROKER, 'group.id': KAFKA_GROUP_ID, 'auto.offset.reset': 'smallest'}
-running = True #indicate whether the consumer is listening or not
-
-# Instantiate kafka producer and consumer
-producer = Producer(confProducer)
-consumer = Consumer(confConsumer)
-
-#instantiate the google bucket client
-try:
-    storage_client = storage.Client()
-except:
-    print("google.cloud storage could not be instantiated")
-
 def clean_storage(voiceUUID):
     """
     Delete the temporary folder 'metadata_<voiceUUID>
@@ -64,11 +37,34 @@ def to_bucket(filename_local, filename_bucket):
     except:
         return False
 
-def bucket_download(bucket, source_filename, destination_file_name):
-    blob = bucket.blob(source_filename)
-    blob.download_to_filename(destination_file_name)
+def bucket_download(storage_client, source_filename, destination_file_name, voiceUUID):
+    if (source_filename.split("_")[0] == "beatchunk_"):
+        #for the beatchunks, we do a search by prefix and download all the chunks
+        exploded = source_filename.split("_")
+        blobs = storage_client.list_blobs(STORAGE_BUCKET_NAME, prefix=exploded[0]+"_"+exploded[1]+"_")
+        blobsExploded = [blobs[i:i+10] for i in range(0, len(blobs)-9, 10)] # for concurrency purpose
+        threadList = []
 
-def getRandomBeatData(producer, voiceUUID):
+        # we will start 10 worker threads to download concurrently the beatchunks
+        def downloadBlobsSlice(blobsSlice, voiceUUID):
+            for b in blobsSlice:
+                b.download_to_filename(TMP_FOLDER+METADATA_FOLDER_PREFIX+voiceUUID+"/"+b.name())
+                print(b.name()+" has been downloaded to "+TMP_FOLDER+METADATA_FOLDER_PREFIX+voiceUUID+"/"+b.name())
+
+        for blobsSlice in blobsExploded:
+            threadList.append(threading.Thread(target=downloadBlobsSlice, args=(blobsSlice,voiceUUID,)))
+        for t in threadList:
+            t.start()
+        for t in threadList:
+            t.join()
+        
+    else:
+        bucket = storage_client.get_bucket(STORAGE_BUCKET_NAME)
+        blob = bucket.blob(source_filename)
+        blob.download_to_filename(destination_file_name)
+        print(blob.name()+" has been downloaded to "+destination_file_name)
+
+def getRandomBeatData(producer, voiceUUID, storage_client):
     '''
     Connect to bucket and retrieve a random beatFile with its associated metadata.
     Then, get the binaries of the file and save it inside TMP_FOLDER folder with the name
@@ -78,16 +74,12 @@ def getRandomBeatData(producer, voiceUUID):
 
     blobs = storage_client.list_blobs(STORAGE_BUCKET_NAME, prefix="beat_")
     random_uuid = random.choice([blob.name for blob in blobs]).split("_")[1].split(".")[0]
-    metadata_folder_prefix = os.environ.get("METADATA_FOLDER_PREFIX","metadata_")
-    bucket = storage_client.get_bucket(STORAGE_BUCKET_NAME)
-    metadata_prefixes = ["duration_", "bpm_", "beat_", "tempDist_", "tempInt_", "verseInterval_"]
+    metadata_prefixes = ["duration_", "bpm_", "beatchunk_", "tempDist_", "tempInt_", "verseInterval_"]
     thread_list = list()
+    
     for p in metadata_prefixes:
-        if p == "beat_":
-            source_filename = "beat_"+p+random_uuid+".mp3"
-        else: # it's binary objects
-            source_filename = "beat_"+p+random_uuid
-        t = threading.Thread(target=bucket_download, args=(bucket, source_filename, TMP_FOLDER+metadata_folder_prefix+voiceUUID+"/"+source_filename,))
+        source_filename = p+random_uuid
+        t = threading.Thread(target=bucket_download, args=(storage_client, source_filename, TMP_FOLDER+METADATA_FOLDER_PREFIX+voiceUUID+"/"+source_filename, voiceUUID,))
         thread_list.append(t)
         t.start()
 
@@ -97,7 +89,8 @@ def getRandomBeatData(producer, voiceUUID):
 
     producer.produce(KAFKA_TOHEARTBEAT_TOPIC, key=voiceUUID, value="Metadata fetched successfully !")
     
-def consume_loop(consumer, producer, topics):
+def consume_loop(consumer, producer, topics, storage_client):
+    print("starting consumming messages...")
     try:
         consumer.subscribe(topics)
 
@@ -113,35 +106,78 @@ def consume_loop(consumer, producer, topics):
                 elif msg.error():
                     raise confluent_kafka.KafkaException(msg.error())
             else:
+                print("message detected : "+str(msg.value()))
                 if msg.topic() == KAFKA_TOCORE_TOPIC:
-                    threading.Thread(target=processToCoreMsg, args=(msg,producer,)).start()
+                    threading.Thread(target=processToCoreMsg, args=(msg,producer,storage_client,)).start()
                 else:
                     sys.stderr.write('topic %s is not recognized for now.\n' % msg.topic())
     finally:
         # Close down consumer to commit final offsets.
         consumer.close()
 
-def processToCoreMsg(message, producer):
+def processToCoreMsg(message, producer, storage_client):
     """
     Consume our kafka core message
     """
+    print("starting processing message "+str(message.value()))
     voiceUUID = message.value().split("_")[1].split(".")[0]
     producer.produce(KAFKA_TOHEARTBEAT_TOPIC, key=voiceUUID, value="Starting core processing...")
-    getRandomBeatData(producer, voiceUUID) #fetching the needed metadata and write them in TMP_FOLDER/metadata_<UUID>/ folder
+    getRandomBeatData(producer, voiceUUID, storage_client) #fetching the needed metadata and write them in TMP_FOLDER/metadata_<UUID>/ folder
 
     # MusicAssembler in the core processing class
     ma = MusicAssembler(message.value())
-    outputfilename = ma.run() #Run the process. If successful, it return the output filename which should be 'output_<UUID>.mp3'
+    finished = ma.run() #Run the process. If successful, it return the output filename which should be 'output_<UUID>.mp3'
 
-    if (outputfilename):
+    if (finished):
         producer.produce(KAFKA_TOHEARTBEAT_TOPIC, key=voiceUUID, value="Rap generated successfully !")
-        producer.produce(KAFKA_TOHEARTBEAT_TOPIC, key=voiceUUID, value="Uploading result to cloud...")
-        to_bucket(outputfilename, outputfilename)
-        producer.produce(KAFKA_TOHEARTBEAT_TOPIC, key=voiceUUID, value="Upload successful !")
+        #to_bucket(outputfilename, outputfilename) #the bucketuploaderservice handle it automatically. The output filename should be : 'output_<UUID>.mp3'
         clean_storage(voiceUUID) #delete the metadata folder
 
 def shutdown():
     running = False
 
 if __name__ == "__main__":
-    consume_loop(consumer, producer, [KAFKA_TOCORE_TOPIC])
+    # env variables
+    global KAFKA_TOCORE_TOPIC
+    global KAFKA_TOBUCKET_TOPIC
+    global KAFKA_TOHEARTBEAT_TOPIC
+    global KAFKA_BROKER
+    global KAFKA_GROUP_ID
+    global STORAGE_BUCKET_NAME
+    global TMP_FOLDER
+    global METADATA_FOLDER_PREFIX
+
+    KAFKA_TOCORE_TOPIC = os.environ.get("KAFKA_TOCORE_TOPIC")
+    KAFKA_TOBUCKET_TOPIC = os.environ.get("KAFKA_TOBUCKET_TOPIC")
+    KAFKA_TOHEARTBEAT_TOPIC = os.environ.get("KAFKA_TOHEARTBEAT_TOPIC")
+    KAFKA_BROKER = os.environ.get("KAFKA_BROKER")
+    KAFKA_GROUP_ID = os.environ.get("KAFKA_GROUP_ID")
+    STORAGE_BUCKET_NAME = os.environ.get('STORAGE_BUCKET_NAME')
+    TMP_FOLDER = os.environ.get('TMP_FOLDER')
+    METADATA_FOLDER_PREFIX = os.environ.get("METADATA_FOLDER_PREFIX")
+
+    #instantiate the google bucket client
+    try:
+        storage_client = storage.Client()
+        print("google.cloud storage client is alive.")
+    except:
+        print("google.cloud storage could not be instantiated")
+        exit(1)
+    
+    print("Waiting for kafka cluster to start...")
+    time.sleep(50) # secured delay for the kafka cluster to setup (leader election can take some time)
+    
+    #setup the producer and the consumer
+    confProducer = {'bootstrap.servers': KAFKA_BROKER, 'client.id': socket.gethostname()}
+    confConsumer = {'bootstrap.servers': KAFKA_BROKER, 'group.id': KAFKA_GROUP_ID, 'auto.offset.reset': 'smallest'}
+    
+    global running
+    running = True #indicate whether the consumer is listening or not
+
+    # Instantiate kafka producer and consumer
+    producer = Producer(confProducer)
+    print("kafka producer is alive")
+    consumer = Consumer(confConsumer)
+    print("kafka consumer is alive")
+
+    consume_loop(consumer, producer, [KAFKA_TOCORE_TOPIC], storage_client)
