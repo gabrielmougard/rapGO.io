@@ -1,10 +1,7 @@
 confluent-kafka
-glob
-fnmatch
-google.cloud
+google-cloud-storage
 aubio
 numpy
 pydub
 scipy
 six
-pythonjsonlogger
