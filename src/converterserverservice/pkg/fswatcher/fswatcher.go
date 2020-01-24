@@ -40,7 +40,7 @@ func Setup() {
 					case setting.TmpFolder()+setting.InputPrefix():
 						//send to 'toBucket' and 'toCore'
 						go triggerBucket(producer, signals, event.Name)
-						//go triggerCore(producer, signals, event.Name)
+						go triggerCore(producer, signals, event.Name)
 					case setting.TmpFolder()+setting.OutputPrefix():
 						//send to 'toBucket' and 'toStream'
 						go triggerBucket(producer, signals, event.Name)

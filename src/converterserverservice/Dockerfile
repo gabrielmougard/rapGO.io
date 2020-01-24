@@ -16,12 +16,21 @@ RUN go get github.com/rs/cors
 # setup the working directory
 ENV PROJECT rapGO.io/src/converterserverservice
 WORKDIR /go/src/$PROJECT
-ADD glide.yaml glide.yaml
-ADD glide.lock glide.lock
-# install dependencies
-RUN glide install
+### dependencies
+COPY vendor /go/src
+
+# in production, comment the line above and un-comment the lines below.
+#ADD glide.yaml glide.yaml
+#ADD glide.lock glide.lock
+## install dependencies
+#RUN glide install
+
+###############
+
 # add the source code
 COPY . .
+RUN rm -r vendor
+RUN ls
 RUN go build -o converterserverservice .
 # strip and compress the binary
 RUN strip --strip-unneeded converterserverservice

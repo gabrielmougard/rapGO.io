@@ -1,5 +1,5 @@
 import sys
-from os
+import os
 import time
 import glob
 import pickle
@@ -12,7 +12,7 @@ import numpy as np
 import pydub
 from pydub.silence import split_on_silence
 from pydub.silence import detect_nonsilent
-import alignment
+import lib.alignment
 
 class MusicAssembler:
 
@@ -29,7 +29,7 @@ class MusicAssembler:
         self.beatsIntensity = []
         self.verse_interval = []
 
-        self.beatfile = 
+        self.beatfile = ""
         self.beatfileDuration = 0.0  #duration of beat file in seconds
         self.bpm = self.__getBPM() #average bpm of the beatfile
         self.randomPadding = math.ceil((self.bpm/60)/(random.randint(1,3))) # integer representing how many beat we should skip for the next chunk
@@ -283,6 +283,7 @@ class MusicAssembler:
         # final step : exportation of the result under the defined output file format
         self.__exportMergedSound(mergedResult)
         print("Merger finished ")
+        return True
 
     def run(self):
 
@@ -315,7 +316,8 @@ class MusicAssembler:
         #the attributes are loaded, we can begin the voice spliter
         self.voice_splitter()
         # merge voice chunks with beats
-        self.merger()
+        res = self.merger()
+        return res
     
     def __assembler(self):
         """
