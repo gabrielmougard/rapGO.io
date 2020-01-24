@@ -10,6 +10,8 @@ from pydub.silence import split_on_silence
 from pydub.silence import detect_nonsilent
 from google.cloud import storage
 from google.cloud.exceptions import GoogleCloudError
+from google.api_core.timeout import ExponentialTimeout
+
 #### sound operation
 def getBeats(beatfile):
     uuid = beatfile.split("_")[1].split(".")[0]
@@ -194,7 +196,7 @@ def chunker(beatfile):
         else:
             idx = str(i)
 
-        with open("beatchunk#"+idx+"_"+uuid,"wb") as f:
+        with open("beatchunk_"+uuid+"_"+idx,"wb") as f:
             pickle.dump(chunks[i], f)
 
 def assembler():
@@ -220,12 +222,12 @@ def run(beatfile):
 
     verse_detector(beatfile, beatsDistribution, beatfileDuration)
 
-    #chunk the rawBeat file since we may encounter timeout in uploading a large file.
-    chunker(beatfile)
+    #chunk the rawBeat file since we may encounter timeout in uploading a large file. (obselete)
+    #chunker(beatfile)
 
     #upload
     for file in glob.glob("*_"+uuid+"*"):
-        if file != "beat_"+uuid+".mp3": #we do not upload the mp3 since we would timeout
+        if file != "beat_"+uuid+".mp3": #we do not upload the mp3 since we would timeout (obselete)
             upload(file,file)
 
 if __name__ == "__main__":
@@ -233,13 +235,17 @@ if __name__ == "__main__":
 
     # list all the available beat in the current folder to be ingested.
     beats = glob.glob("beat_*.mp3") # for now we take only one file
-    #threadList = []
+    threadList = []
     #run the ingestion 
-    #for b in beats:
-    #    threadList.append(threading.Thread(target=run,args=(b,)))
-    #for t in threadList:
-    #    t.start()
+    for b in beats:
+        threadList.append(threading.Thread(target=run,args=(b,)))
+    for t in threadList:
+        t.start()
+    
     startTime = time.time()
-    run(beats[1])
+    run(beats[2])
     endTime = time.time()
     print("song ingested in : "+str(endTime-startTime)+" secs.")
+
+    # use the command : `gcloud auth activate-service-account --key-file=rapgo-storage.json` to register the service account
+    # and then we can use : `gsutil cp cp beat_<UUID>.mp3 gs://rapgo-bucket-2/beat_<UUID>.mp3` to upload with resumable media upload stategy (meaning that there's no limit in the size of the file because there's no real timeout)
