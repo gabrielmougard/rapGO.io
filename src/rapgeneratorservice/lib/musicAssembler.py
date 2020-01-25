@@ -105,7 +105,12 @@ class MusicAssembler:
         return avg_sound_paddings
 
     def __exportMergedSound(self,mergedResult):
-        mergedResult.export(self.TMP_FOLDER+self.outputfilePrefix+self.voiceUUID,format=self.outputformat)
+        print("ouput exportation...")
+        mergedResult.export(self.METADATA_FOLDER+self.outputfilePrefix+self.voiceUUID+"."+self.outputformat,format=self.outputformat)
+        print("exportation ended !")
+        # once exported, move it to the upper directory to be detected by the bucket uploader
+        cmd = "mv "+self.METADATA_FOLDER+self.outputfilePrefix+self.voiceUUID+"."+self.outputformat+" "+self.TMP_FOLDER
+        os.system(cmd)
 
     def merger(self):
         """
