@@ -38,31 +38,34 @@ def to_bucket(filename_local, filename_bucket):
         return False
 
 def bucket_download(storage_client, source_filename, destination_file_name, voiceUUID):
-    if (source_filename.split("_")[0] == "beatchunk_"):
-        #for the beatchunks, we do a search by prefix and download all the chunks
-        exploded = source_filename.split("_")
-        blobs = storage_client.list_blobs(STORAGE_BUCKET_NAME, prefix=exploded[0]+"_"+exploded[1]+"_")
-        blobsExploded = [blobs[i:i+10] for i in range(0, len(blobs)-9, 10)] # for concurrency purpose
-        threadList = []
-
-        # we will start 10 worker threads to download concurrently the beatchunks
-        def downloadBlobsSlice(blobsSlice, voiceUUID):
-            for b in blobsSlice:
-                b.download_to_filename(TMP_FOLDER+METADATA_FOLDER_PREFIX+voiceUUID+"/"+b.name())
-                print(b.name()+" has been downloaded to "+TMP_FOLDER+METADATA_FOLDER_PREFIX+voiceUUID+"/"+b.name())
-
-        for blobsSlice in blobsExploded:
-            threadList.append(threading.Thread(target=downloadBlobsSlice, args=(blobsSlice,voiceUUID,)))
-        for t in threadList:
-            t.start()
-        for t in threadList:
-            t.join()
-        
-    else:
-        bucket = storage_client.get_bucket(STORAGE_BUCKET_NAME)
-        blob = bucket.blob(source_filename)
-        blob.download_to_filename(destination_file_name)
-        print(blob.name()+" has been downloaded to "+destination_file_name)
+    #if (source_filename.split("_")[0] == "beatchunk"):
+    #    print("Starting downloading BEATCHUNKS...")
+    #    #for the beatchunks, we do a search by prefix and download all the chunks
+    #    exploded = source_filename.split("_")
+    #    blobs = list(storage_client.list_blobs(STORAGE_BUCKET_NAME, prefix=exploded[0]+"_"+exploded[1]+"_"))
+    #    blobsExploded = [blobs[i:i+10] for i in range(0, len(blobs)-9, 10)] # for concurrency purpose
+    #    threadList = []
+#
+    #    # we will start 10 worker threads to download concurrently the beatchunks
+    #    def downloadBlobsSlice(blobsSlice, voiceUUID):
+    #        for b in blobsSlice:
+    #            b.download_to_filename(TMP_FOLDER+METADATA_FOLDER_PREFIX+voiceUUID+"/"+b.name)
+    #            print(b.name+" has been downloaded to "+TMP_FOLDER+METADATA_FOLDER_PREFIX+voiceUUID+"/"+b.name)
+#
+    #    startTime = time.time()
+    #    for blobsSlice in blobsExploded:
+    #        threadList.append(threading.Thread(target=downloadBlobsSlice, args=(blobsSlice,voiceUUID,)))
+    #    for t in threadList:
+    #        t.start()
+    #    for t in threadList:
+    #        t.join()
+    #    print("temps ecoule : "+str(time.time()-startTime))
+    #    
+    #else:
+    bucket = storage_client.get_bucket(STORAGE_BUCKET_NAME)
+    blob = bucket.blob(source_filename)
+    blob.download_to_filename(destination_file_name)
+    print(blob.name+" has been downloaded to "+destination_file_name)
 
 def getRandomBeatData(producer, voiceUUID, storage_client):
     '''
@@ -74,18 +77,21 @@ def getRandomBeatData(producer, voiceUUID, storage_client):
 
     blobs = storage_client.list_blobs(STORAGE_BUCKET_NAME, prefix="beat_")
     random_uuid = random.choice([blob.name for blob in blobs]).split("_")[1].split(".")[0]
-    metadata_prefixes = ["duration_", "bpm_", "beatchunk_", "tempDist_", "tempInt_", "verseInterval_"]
+    print("the chosen random_uuid is : "+random_uuid)
+    metadata_prefixes = ["duration_", "bpm_", "beat_", "tempDist_", "tempInt_", "verseInterval_"]
     thread_list = list()
     
     for p in metadata_prefixes:
         source_filename = p+random_uuid
+        if p == "beat_":
+            source_filename += ".mp3"
         t = threading.Thread(target=bucket_download, args=(storage_client, source_filename, TMP_FOLDER+METADATA_FOLDER_PREFIX+voiceUUID+"/"+source_filename, voiceUUID,))
         thread_list.append(t)
         t.start()
 
-    for idx, t in enumerate(thread_list):
+    for t in thread_list:
         t.join()
-        print("download #"+str(idx)+" ended.")
+
 
     producer.produce(KAFKA_TOHEARTBEAT_TOPIC, key=voiceUUID, value="Metadata fetched successfully !")
     
@@ -120,12 +126,17 @@ def processToCoreMsg(message, producer, storage_client):
     Consume our kafka core message
     """
     print("starting processing message "+str(message.value()))
-    voiceUUID = message.value().split("_")[1].split(".")[0]
+    voiceUUID = str(message.value()).split("_")[1].split(".")[0]
+
+    #create metadata folder
+    metadataPath = TMP_FOLDER+METADATA_FOLDER_PREFIX+voiceUUID
+    os.mkdir(metadataPath)
+
     producer.produce(KAFKA_TOHEARTBEAT_TOPIC, key=voiceUUID, value="Starting core processing...")
     getRandomBeatData(producer, voiceUUID, storage_client) #fetching the needed metadata and write them in TMP_FOLDER/metadata_<UUID>/ folder
 
     # MusicAssembler in the core processing class
-    ma = MusicAssembler(message.value())
+    ma = MusicAssembler(str(message.value()))
     finished = ma.run() #Run the process. If successful, it return the output filename which should be 'output_<UUID>.mp3'
 
     if (finished):

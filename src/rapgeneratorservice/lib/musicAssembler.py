@@ -24,146 +24,18 @@ class MusicAssembler:
         self.TMP_FOLDER = os.environ.get("TMP_FOLDER", "/data/tmp/")
         self.METADATA_FOLDER = self.TMP_FOLDER+os.environ.get("METADATA_FOLDER_PREFIX","metadata_")+self.voiceUUID+"/"
 
-        self.uuidBeatData  = uuidBeatData
         self.beatsDistribution = [] #same dim as self.beatsIntensity
         self.beatsIntensity = []
         self.verse_interval = []
 
-        self.beatfile = ""
         self.beatfileDuration = 0.0  #duration of beat file in seconds
-        self.bpm = self.__getBPM() #average bpm of the beatfile
-        self.randomPadding = math.ceil((self.bpm/60)/(random.randint(1,3))) # integer representing how many beat we should skip for the next chunk
+        self.bpm = 0.0 #average bpm of the beatfile
+        self.randomPadding = 0 # integer representing how many beat we should skip for the next chunk
         self.chunks = []
-        self.CHUNKS_PATH = "chunks/"
 
         #OUTPUT
-        self.outputfile    = "testOutput/output"
+        self.outputfilePrefix    = "output_"
         self.outputformat  = "mp3"
-    
-    def getBeats(self):
-        startTime = time.time()
-        print("[BEATS RECOGNIZER] Starting beats recognition...")
-        win_s = 512
-        hop_s = win_s // 2
-        samplerate = 44000
-
-        s = source(self.beatfile,samplerate, hop_s)
-        samplerate = s.samplerate
-
-        o = onset("default", win_s, hop_s, samplerate)
-
-        onsets = []
-        desc = []
-        tdesc = []
-        downsample = 2 #to plot n samples / hop_s
-        allsamples_max = np.zeros(0,)
-        #total number of frames read
-        total_frames = 0
-        while True:
-            samples, read = s()
-            if o(samples):
-                onsets.append(o.get_last())
-            new_maxes = (abs(samples.reshape(hop_s//downsample, downsample))).max(axis=0)
-            allsamples_max = np.hstack([allsamples_max, new_maxes])
-            desc.append(o.get_descriptor())
-            tdesc.append(o.get_thresholded_descriptor())
-            total_frames += read
-            if read < hop_s: break
-
-        desc_times = [ float(t) * hop_s / samplerate for t in range(len(desc)) ]
-        desc_max = max(desc) if max(desc) != 0 else 1.
-        desc_plot = [d / desc_max for d in desc]
-        CONSIDERATION_THRESHOLD = 0.7
-        desc_times_filtered = []
-        desc_plot_filtered = []
-        for x,y in zip(desc_times,desc_plot):
-            if y > CONSIDERATION_THRESHOLD:
-                desc_times_filtered.append(x)
-                desc_plot_filtered.append(y)
-
-        allsamples_max = (allsamples_max > 0) * allsamples_max
-        allsamples_max_times = [ float(t) * hop_s / downsample / samplerate for t in range(len(allsamples_max)) ]
-        duration = allsamples_max_times[-1]
-
-        #update object
-        self.beatfileDuration  = duration
-        self.beatsDistribution = desc_times_filtered
-        self.beatsIntensity    = desc_plot_filtered
-        with open("testPickle/beatDistribution","wb") as f:
-            pickle.dump(self.beatsDistribution, f)
-        with open("testPickle/beatIntensity","wb") as f:
-            pickle.dump(self.beatsIntensity, f)
-
-        print("[BEATS RECOGNIZER] Beats recognition ended.")
-        endTime = time.time()
-        print("[BEATS RECOGNIZER] Time elasped (in secs): "+str(endTime-startTime))
-
-    def __getBPM(self):
-        """
-        return the average bpm of a song. In prod, this will be executed in the
-        ingestion engine and it will be persisted in a binary file (pickle object)
-        with the beatDistribution and beatAmplDistribution.
-        """
-        print("Getting average BPM of song...")
-        samplerate, win_s, hop_s = 44100, 1024, 512
-
-        s = source(self.beatfile, samplerate, hop_s)
-        samplerate = s.samplerate
-        o = tempo("specdiff", win_s, hop_s, samplerate)
-        # List of beats, in samples
-        beats = []
-        # Total number of frames read
-        total_frames = 0
-
-        while True:
-            samples, read = s()
-            is_beat = o(samples)
-            if is_beat:
-                this_beat = o.get_last_s()
-                beats.append(this_beat)
-                #if o.get_confidence() > .2 and len(beats) > 2.:
-                #    break
-            total_frames += read
-            if read < hop_s:
-                break
-
-        # Convert to periods and to bpm 
-        if len(beats) > 1:
-            if len(beats) < 4:
-                print("few beats found in {:s}".format(self.beatfile))
-            bpms = 60./np.diff(beats)
-            b = np.median(bpms)
-        else:
-            b = 0
-            print("not enough beats found in {:s}".format(self.beatfile))
-        print("The song is "+str(b)+" bpm.")
-        self.bpm = b
-        return b
-
-    def verse_detector(self):
-        """
-        Return an array of tuple in which you have
-        the starting time of a verse and the ending time
-        of the verse.
-        """
-        startTime = time.time()
-        print("[VERSE_DETECTOR] Starting verse detector of voice file...")
-        verse_intervals = []
-        MINIMUM_VERSE_LENGTH = 5.0 # if the interval is greater or equal than 5s, it's a verse.
-        if self.beatsDistribution[0] > MINIMUM_VERSE_LENGTH:
-            verse_intervals.append((-1,0))
-        for i in range(0,len(self.beatsDistribution)-1):
-            if abs(self.beatsDistribution[i]-self.beatsDistribution[i+1]) >= MINIMUM_VERSE_LENGTH:
-                verse_intervals.append((i,i+1))
-        if abs(self.beatfileDuration-self.beatsDistribution[-1]) > MINIMUM_VERSE_LENGTH:
-            verse_intervals.append((len(self.beatsDistribution)-1,-1))
-
-        self.verse_interval = verse_intervals
-        with open("testPickle/verseInterval","wb") as f:
-            pickle.dump(self.verse_interval, f)
-        print("[VERSE_DETECTOR] verse detector ended.")
-        endTime = time.time()
-        print("[VERSE_DETECTOR] Time elasped (in secs): "+str(endTime-startTime))
 
     def voice_splitter(self):
         """ 
@@ -171,7 +43,7 @@ class MusicAssembler:
         without the silence parts.
         """
         print("[VOICE_SPLITTER] Starting voice splitting...")
-        voice = pydub.AudioSegment.from_mp3(self.TMP_FOLDER+self.voicefile)
+        voice = pydub.AudioSegment.from_file(self.TMP_FOLDER+str(self.voicefile).split("/")[-1].split("'")[0])
         print("[VOICE_SPLITTER] voice dBFS : "+str(voice.dBFS))
         dBFS = voice.dBFS
         # Split track where the silence is 1 second or more and get chunks using the imported function
@@ -187,8 +59,6 @@ class MusicAssembler:
         print("[VOICE_SPLITTER] "+str(len(chunks))+" chunks generated.")
         for chunk in chunks:
             self.chunks.append(chunk)
-        #with open(self.METADATA_FOLDER+self.CHUNKS_PATH,"wb") as f:
-        #    pickle.dump(self.chunks, f)
         print("[VOICE_SPLITTER] voice splitting has ended.")
 
     def __match_target_amplitude(self,aChunk, target_dBFS):
@@ -235,7 +105,7 @@ class MusicAssembler:
         return avg_sound_paddings
 
     def __exportMergedSound(self,mergedResult):
-        mergedResult.export(self.outputfile,format=self.outputformat)
+        mergedResult.export(self.TMP_FOLDER+self.outputfilePrefix+self.voiceUUID,format=self.outputformat)
 
     def merger(self):
         """
@@ -255,22 +125,26 @@ class MusicAssembler:
         soundPaddings = self.__get_sound_paddings()
         print("[VOICE MERGER] the sound padding are : "+str(soundPaddings))
         print("[VOICE MERGER] verse distribution : "+str(self.verse_interval))
-        mergedResult = self.__assembler() #the final result (for now, contains only the beatfile but the chunks will be merged progressively)
+        mergedResult = self.__loadBeat() #the final result (for now, contains only the beatfile but the chunks will be merged progressively)
         
         chunkNumber = 0
         beatCounted = 0
         while(beatCounted != len(self.beatsDistribution)):
-            c = self.chunks[chunkNumber]
+            try:
+                c = self.chunks[chunkNumber]
+            except IndexError:
+                print("chunkNumber overflow. Break.")
+                break
             #Alignment
             endT = self.beatsDistribution[beatCounted]+c.duration_seconds
             #alignChunk, newBeatsCounted = alignment.align(c,endT,self.beatsDistribution,beatCounted) # after the MVP : use the self.beatsIntensity
-            newBeatsCounted = alignment.align(c,endT,self.beatsDistribution,beatCounted)
+            newBeatsCounted = lib.alignment.align(c,endT,self.beatsDistribution,beatCounted)
             startBeatCounted = beatCounted
             beatCounted += newBeatsCounted-beatCounted
             # leftChunkPart is a slice of the original chunk 
             # rightChunkPart is the "stretched"(slower or faster) complementary slice of the original chunk. 
             #mergedResult = alignment.overlay(mergedResult,alignChunk,startBeatCounted,beatCounted,self.beatsDistribution) # add the chunk to the beatsound
-            mergedResult = alignment.overlay(mergedResult, c, startBeatCounted, beatCounted, self.beatsDistribution) # add the chunk to the beatsound
+            mergedResult = lib.alignment.overlay(mergedResult, c, startBeatCounted, beatCounted, self.beatsDistribution) # add the chunk to the beatsound
             #Padding (padding means moving forward beatCounted )
             # for now, we'll choose a constant padding of 250ms
             beatCounted += random.randint(2,5)
@@ -291,25 +165,26 @@ class MusicAssembler:
         from os.path import isfile, join
         metadata = [f for f in listdir(self.METADATA_FOLDER) if isfile(join(self.METADATA_FOLDER, f))]
 
-        for f in metdata:
+        for f in metadata:
             prefix = f.split("_")[0]
             if prefix == "duration":
                 with open(self.METADATA_FOLDER+f, "rb") as f_in:
-                    self.beatfileDuration = pickle.load(self.METADATA_FOLDER+f)
+                    self.beatfileDuration = pickle.load(f_in)
             elif prefix == "bpm":
                 with open(self.METADATA_FOLDER+f, "rb") as f_in:
-                    self.bpm = pickle.load(self.METADATA_FOLDER+f)
+                    self.bpm = pickle.load(f_in)
+                self.randomPadding = math.ceil((self.bpm/60)/(random.randint(1,3)))
             elif prefix == "sound":
                 print("voicefile detected !")
             elif prefix == "tempDist":
                 with open(self.METADATA_FOLDER+f, "rb") as f_in:
-                    self.beatsDistribution = pickle.load(self.METADATA_FOLDER+f)
+                    self.beatsDistribution = pickle.load(f_in)
             elif prefix == "tempInt":
                 with open(self.METADATA_FOLDER+f, "rb") as f_in:
-                    self.beatsIntensity = pickle.load(self.METADATA_FOLDER+f)
+                    self.beatsIntensity = pickle.load(f_in)
             elif prefix == "verseInterval":
                 with open(self.METADATA_FOLDER+f, "rb") as f_in:
-                    self.verse_interval = pickle.load(self.METADATA_FOLDER+f)
+                    self.verse_interval = pickle.load(f_in)
             else:
                 print("the prefix found does not match")
 
@@ -319,16 +194,21 @@ class MusicAssembler:
         res = self.merger()
         return res
     
-    def __assembler(self):
-        """
-        Reassemble the chunks together to form the raw beat pydub.AudioSegment object
-        """
-        chunkList = glob.glob(self.METADATA_FOLDER+"beatchunk*")
-        uuid = chunkList[0].split("_")[1]
-        chunkList.sort()
-        res = pydub.AudioSegment.empty()
-        for c in chunkList:
-            res += pickle.load(open(c,"rb"))
+    # obselete
+    #def __assembler(self):
+    #    """
+    #    Reassemble the chunks together to form the raw beat pydub.AudioSegment object
+    #    """
+    #    chunkList = glob.glob(self.METADATA_FOLDER+"beatchunk*")
+    #    uuid = chunkList[0].split("_")[1]
+    #    chunkList.sort()
+    #    res = pydub.AudioSegment.empty()
+    #    for c in chunkList:
+    #        res += pickle.load(open(c,"rb"))
+    #    return res
+    def __loadBeat(self):
+        beatfile = glob.glob(self.METADATA_FOLDER+"beat_*")[0].split("/")[-1]
+        res = pydub.AudioSegment.from_mp3(self.METADATA_FOLDER+beatfile)
         return res
 
 

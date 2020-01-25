@@ -46,7 +46,7 @@ func InputPrefix() string {
 }
 
 func OutputPrefix() string {
-	v, ok := os.LookupEnv("OUTT_PREFIX")
+	v, ok := os.LookupEnv("OUTPUT_PREFIX")
 	if !ok {
 		panic(errors.New("the output prefix is not detected."))
 	}

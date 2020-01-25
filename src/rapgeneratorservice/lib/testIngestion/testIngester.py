@@ -239,6 +239,11 @@ if __name__ == "__main__":
     #    threadList.append(threading.Thread(target=run,args=(b,)))
     #for t in threadList:
     #    t.start()
+
+    # ingestion engine setup : https://stackoverflow.com/questions/51802959/gsutil-not-working-in-dockerfile-on-google-compute-engine
+
+
+
     startTime = time.time()
     run(beats[1])
     endTime = time.time()
