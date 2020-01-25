@@ -1,4 +1,6 @@
-# Dockerfile snippet for using `gsutil` inside container
+# Dockerfile snippet for using `gsutil` inside container # gsutil is very useful for uploading large files
+# thanks to 'resumable upload' feature. The golang/python clients are more difficult to use with the resumable media upload
+# so that's why I'll concurrently spawn gsutil processes to upload big files.
 
 
 # Install Google Cloud tools - Debian https://cloud.google.com/storage/docs/gsutil_install#deb
