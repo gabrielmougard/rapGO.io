@@ -1,0 +1,36 @@
+body {
+  background-color: #f2f2f2;
+}
+
+/* Create two equal columns that floats next to each other */
+.column-left {
+  float: left;
+  width: 50%;
+  padding-top: 50px;
+  padding-bottom: 30px;
+}
+
+.column-right {
+  float: right;
+  width: 50%;
+  padding-top: 50px;
+  padding-bottom: 30px;
+}
+
+.title-left-column {
+  padding-left: 40%;
+}
+
+.ingest-button-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 50px
+}
+
+.gauge-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
