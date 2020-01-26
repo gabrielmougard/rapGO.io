@@ -13,6 +13,9 @@ import {
 import { Button, SIZE } from "baseui/button";
 import { Display4 } from "baseui/typography";
 import { Drawer } from 'baseui/drawer';
+import Overflow from 'baseui/icon/overflow';
+import {Textarea} from 'baseui/textarea';
+import { Tag } from "baseui/tag";
 
 import Gauge from 'react-svg-gauge';
 
@@ -39,6 +42,7 @@ class Ingestor extends Component {
     super(props)
     this.state = {
       urlsDrawer : false,
+      urlsDrawerTextAreaValue : "",
       urlsFileDescDrawer : false,
       rawfilesDrawer : false,
       genreDrawer : false,
@@ -75,6 +79,12 @@ class Ingestor extends Component {
     return (string.length === 1) ? '0' + string : string;
   }
   refreshMetadata() {
+
+  }
+  setTextAreaValueURLsDrawer(newValue) {
+    this.setState({urlsDrawerTextAreaValue : newValue})
+  }
+  sendURLs() {
 
   }
 
@@ -175,7 +185,54 @@ class Ingestor extends Component {
             isOpen={this.state.urlsDrawer}
             anchor="left"
           >
-            Add by URLs here
+            <Display4>Add the URLs to be ingested below :</Display4>
+            <div class="textarea-urls-container">
+              <Textarea
+                value={this.state.urlsDrawerTextAreaValue}
+                onChange={e => this.setTextAreaValueURLsDrawer(e.currentTarget.value)}
+                placeholder="Enter one URL per line..."
+                overrides={{
+                  Input: {
+                    style: {
+                      maxHeight: '300px',
+                      minHeight: '100px',
+                      minWidth: '300px',
+                      width: '100vw', // fill all available space up to parent max-width
+                      resize: 'both',
+                    },
+                  },
+                  InputContainer: {
+                    style: {
+                      maxWidth: '100%',
+                      width: 'min-content',
+                    },
+                  },
+                }}
+              />
+            </div>
+            <Tag closeable={false} variant={"solid"} kind="accent">
+            hint : https://freemusicarchive.org/EXAMPLE_SONG.mp3)
+            </Tag>
+            <div class="urls-drawer-button-container">
+              <Button
+                onClick={() =>
+                  this.sendURLs()
+                }
+                size={SIZE.large}
+                overrides={{
+                  BaseButton: {
+                    style: {
+                      marginTop: '12px',
+                      marginBottom: '12px',
+                      marginLeft: '12px',
+                      marginRight: '12px',
+                    },
+                  },
+                }}
+              >
+                Ingest
+              </Button>
+            </div>
         </Drawer>
       </div>
       <div class="ingest-button-container">
@@ -282,6 +339,7 @@ class Ingestor extends Component {
                     },
                   },
                 }}
+                endEnhancer={() => <Overflow size={24} />}
               >
               Refresh metadata
               </Button>

@@ -43,3 +43,14 @@ body {
   float: right;
   width: 50%;
 }
+
+.textarea-urls-container {
+  margin-top: 20px;
+}
+
+.urls-drawer-button-container {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
