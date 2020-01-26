@@ -111,11 +111,7 @@ class Ingestor extends Component {
     const cardColor = 'rgb(255, 0, 255)'
     return (
     <div>
-      <ThemeProvider
-      theme={createTheme(lightThemePrimitives, {
-        colors: { headerNavigationFill: "#d9d9d9" }
-      })}
-    >
+
     <HeaderNavigation
       overrides={{
         Root: {
@@ -441,7 +437,6 @@ class Ingestor extends Component {
           </GridListTile>           
         </GridList>
     </div>
-    </ThemeProvider>
     </div>
     )
   }
