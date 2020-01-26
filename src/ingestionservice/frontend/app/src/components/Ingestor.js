@@ -25,6 +25,9 @@ import ListSubheader from '@material-ui/core/ListSubheader';
 import grey from "@material-ui/core/colors/grey";
 import { makeStyles } from '@material-ui/core/styles';
 
+import MetadataLoader from './MetadataLoader';
+import GaugeLoader from './GaugeLoader';
+
 //import { connect } from 'react-redux';
 
 import { INGESTOR_BUILD_VERSION } from "../CONSTANTS";
@@ -292,7 +295,7 @@ class Ingestor extends Component {
             <ListSubheader component="div">Objects statistics</ListSubheader>
           </GridListTile>
           <GridListTile>
-              <Card minWidth={100} style={{ cardColor }}>
+              <Card>
                 <CardContent>
                   <Typography fontSize={14} color="textSecondary" gutterBottom>
                     audio/mpeg
