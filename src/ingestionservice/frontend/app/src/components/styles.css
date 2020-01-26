@@ -54,3 +54,25 @@ body {
   align-items: center;
   justify-content: center;
 }
+
+.filedroparea-urlsfiledesc-container {
+  margin-top: 20px;
+}
+
+.urlsfiledesc-drawer-button-container {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filedroparea-rawfile-container {
+  margin-top: 20px;
+}
+
+.rawfile-drawer-button-container {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -16,6 +16,7 @@ import { Drawer } from 'baseui/drawer';
 import Overflow from 'baseui/icon/overflow';
 import {Textarea} from 'baseui/textarea';
 import { Tag } from "baseui/tag";
+import { FileUploader } from "baseui/file-uploader";
 
 import Gauge from 'react-svg-gauge';
 
@@ -85,6 +86,9 @@ class Ingestor extends Component {
     this.setState({urlsDrawerTextAreaValue : newValue})
   }
   sendURLs() {
+
+  }
+  sendURLsFileDesc() {
 
   }
 
@@ -259,7 +263,43 @@ class Ingestor extends Component {
             isOpen={this.state.urlsFileDescDrawer}
             anchor="left"
           >
-            Add by URLs file descriptor here
+            <Display4>Add the URLs file description (text file containing the URLs, one per line) below :</Display4>
+            <div class="filedroparea-urlsfiledesc-container">
+              <FileUploader
+                //onCancel={} //shoud put cancelUpload function in param
+                onDrop={(acceptedFiles, rejectedFiles) => {
+                  // handle file upload...
+                  //startFakeProgress();
+                }}
+                // progressAmount is a number from 0 - 100 which indicates the percent of file transfer completed
+                //progressAmount={progressAmount}
+                //progressMessage={
+                //  progressAmount
+                //    ? `Uploading... ${progressAmount}% of 100%`
+                //    : ''
+                //}
+              />
+            </div>
+            <div class="urlsfiledesc-drawer-button-container">
+              <Button
+                onClick={() =>
+                  this.sendURLsFileDesc()
+                }
+                size={SIZE.large}
+                overrides={{
+                  BaseButton: {
+                    style: {
+                      marginTop: '12px',
+                      marginBottom: '12px',
+                      marginLeft: '12px',
+                      marginRight: '12px',
+                    },
+                  },
+                }}
+              >
+                Ingest
+              </Button>
+            </div>
         </Drawer>
       </div>
       <div class="ingest-button-container">
@@ -286,7 +326,43 @@ class Ingestor extends Component {
             isOpen={this.state.rawfilesDrawer}
             anchor="left"
           >
-            Add the raw files here
+            <Display4>Add the raw files (.mp3, .webm, ...) below :</Display4>
+            <div class="filedroparea-rawfile-container">
+              <FileUploader
+                //onCancel={} //shoud put cancelUpload function in param
+                onDrop={(acceptedFiles, rejectedFiles) => {
+                  // handle file upload...
+                  //startFakeProgress();
+                }}
+                // progressAmount is a number from 0 - 100 which indicates the percent of file transfer completed
+                //progressAmount={progressAmount}
+                //progressMessage={
+                //  progressAmount
+                //    ? `Uploading... ${progressAmount}% of 100%`
+                //    : ''
+                //}
+              />
+            </div>
+            <div class="rawfile-drawer-button-container">
+              <Button
+                onClick={() =>
+                  this.sendRawFiles()
+                }
+                size={SIZE.large}
+                overrides={{
+                  BaseButton: {
+                    style: {
+                      marginTop: '12px',
+                      marginBottom: '12px',
+                      marginLeft: '12px',
+                      marginRight: '12px',
+                    },
+                  },
+                }}
+              >
+                Ingest
+              </Button>
+            </div>
         </Drawer>
       </div>
       <div class="ingest-button-container">
