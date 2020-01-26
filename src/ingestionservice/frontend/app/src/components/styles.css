@@ -34,3 +34,12 @@ body {
   justify-content: center;
 }
 
+.metadata-header-title {
+  float: left;
+  width: 50%;
+}
+
+.metadata-header-refresh {
+  float: right;
+  width: 50%;
+}

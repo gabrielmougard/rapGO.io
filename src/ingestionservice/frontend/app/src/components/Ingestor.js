@@ -1,5 +1,10 @@
 import React, { Component } from "react";
 import {
+  ThemeProvider,
+  createTheme,
+  lightThemePrimitives
+} from "baseui";
+import {
   HeaderNavigation,
   ALIGN,
   StyledNavigationList,
@@ -66,6 +71,9 @@ class Ingestor extends Component {
     let string = value.toString(16);
     return (string.length === 1) ? '0' + string : string;
   }
+  refreshMetadata() {
+
+  }
 
   render() {
     // const {} = this.state
@@ -103,6 +111,11 @@ class Ingestor extends Component {
     const cardColor = 'rgb(255, 0, 255)'
     return (
     <div>
+      <ThemeProvider
+      theme={createTheme(lightThemePrimitives, {
+        colors: { headerNavigationFill: "#d9d9d9" }
+      })}
+    >
     <HeaderNavigation
       overrides={{
         Root: {
@@ -250,10 +263,34 @@ class Ingestor extends Component {
     </div>
 
     <div class="column-right">
+        
         <div class="gauge-container">
+          <div>
+            <div class="metadata-header-title"><Display4>Bucket metadata</Display4></div>
+            <div class="metadata-header-refresh">
+              <Button
+                onClick={() =>
+                  this.refreshMetadata()
+                }
+                size={SIZE.large}
+                overrides={{
+                  BaseButton: {
+                    style: {
+                      marginTop: '12px',
+                      marginBottom: '12px',
+                      marginLeft: '12px',
+                      marginRight: '12px',
+                    },
+                  },
+                }}
+              >
+              Refresh metadata
+              </Button>
+            </div>
+          </div>
           <Gauge value={this.state.gaugeValue} topLabelStyle={tLabelStyle} valueLabelStyle={labelStyle} width={400} height={320} color={colorHex} label="0.34Go/30Go consummed" valueFormatter={value => `${value}%`}/>
         </div>
-        
+
         <GridList cellHeight={180}>
           <GridListTile key="Subheader" cols={2} style={{ height: 'auto' }}>
             <ListSubheader component="div">Objects statistics</ListSubheader>
@@ -312,8 +349,99 @@ class Ingestor extends Component {
                 </CardContent>
               </Card>
           </GridListTile>
+          <GridListTile>
+              <Card minWidth={100} style={{ cardColor }}>
+                <CardContent>
+                  <Typography fontSize={14} color="textSecondary" gutterBottom>
+                    application/octet-stream
+                  </Typography>
+                  <Typography variant="h5" component="h2">
+                    {"tempDist_<UUID>"}
+                  </Typography>
+                  <Typography marginBottom={12} color="textSecondary">
+                    Avg. size : {"330Ko"}
+                  </Typography>
+                  <Typography variant="body2" component="p">
+                    Occurence : 5642 units
+                  </Typography>
+                </CardContent>
+              </Card>
+          </GridListTile>
+          <GridListTile>
+              <Card minWidth={100} style={{ cardColor }}>
+                <CardContent>
+                  <Typography fontSize={14} color="textSecondary" gutterBottom>
+                    application/octet-stream
+                  </Typography>
+                  <Typography variant="h5" component="h2">
+                    {"tempInt_<UUID>"}
+                  </Typography>
+                  <Typography marginBottom={12} color="textSecondary">
+                    Avg. size : {"330Ko"}
+                  </Typography>
+                  <Typography variant="body2" component="p">
+                    Occurence : 5642 units
+                  </Typography>
+                </CardContent>
+              </Card>
+          </GridListTile>
+          <GridListTile>
+              <Card minWidth={100} style={{ cardColor }}>
+                <CardContent>
+                  <Typography fontSize={14} color="textSecondary" gutterBottom>
+                    application/octet-stream
+                  </Typography>
+                  <Typography variant="h5" component="h2">
+                    {"bpm_<UUID>"}
+                  </Typography>
+                  <Typography marginBottom={12} color="textSecondary">
+                    Avg. size : {"330Ko"}
+                  </Typography>
+                  <Typography variant="body2" component="p">
+                    Occurence : 5642 units
+                  </Typography>
+                </CardContent>
+              </Card>
+          </GridListTile>
+          <GridListTile>
+              <Card minWidth={100} style={{ cardColor }}>
+                <CardContent>
+                  <Typography fontSize={14} color="textSecondary" gutterBottom>
+                    application/octet-stream
+                  </Typography>
+                  <Typography variant="h5" component="h2">
+                    {"verseInterval_<UUID>"}
+                  </Typography>
+                  <Typography marginBottom={12} color="textSecondary">
+                    Avg. size : {"330Ko"}
+                  </Typography>
+                  <Typography variant="body2" component="p">
+                    Occurence : 5642 units
+                  </Typography>
+                </CardContent>
+              </Card>
+          </GridListTile>
+          <GridListTile>
+              <Card minWidth={100} style={{ cardColor }}>
+                <CardContent>
+                  <Typography fontSize={14} color="textSecondary" gutterBottom>
+                    application/octet-stream
+                  </Typography>
+                  <Typography variant="h5" component="h2">
+                    {"duration_<UUID>"}
+                  </Typography>
+                  <Typography marginBottom={12} color="textSecondary">
+                    Avg. size : {"330Ko"}
+                  </Typography>
+                  <Typography variant="body2" component="p">
+                    Occurence : 5642 units
+                  </Typography>
+                </CardContent>
+              </Card>
+          </GridListTile>           
         </GridList>
     </div>
+    </ThemeProvider>
     </div>
     )
   }
