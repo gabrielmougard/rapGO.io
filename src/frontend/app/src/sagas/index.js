@@ -17,12 +17,13 @@ function* fetchRap(action) {
                 'Content-Type': `multipart/form-data; boundary=${data._boundary}`,
             }
         });
-        const { status, outputUUID } = response.data
-        if (status == 200 && outputUUID) {
+        console.log(response)
+        const { Status, OutputUUID } = response.data
+        if (Status == 200 && OutputUUID) {
             console.log("[SAGA] : outputUUID detected.");
-            yield put(fetchRapEnded(true, outputUUID));
+            yield put(fetchRapEnded(true, OutputUUID));
         } else {
-            console.log("[SAGA] : error, status code is "+status)
+            console.log("[SAGA] : error, status code is "+Status)
             yield put(fetchRapEnded(false));
         }
     } catch (e) {
@@ -34,6 +35,7 @@ function* fetchRap(action) {
 
 function* actionWatcher() {
     yield takeLatest('GET_RAP', fetchRap);
+
 }
 
 export default function* rootSaga() {

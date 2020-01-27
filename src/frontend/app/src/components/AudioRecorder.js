@@ -2,11 +2,17 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux';
 import { ReactMic } from 'react-mic'
 import {Button} from 'baseui/button';
+import {ProgressBar} from 'baseui/progress-bar';
 import TriangleRight from 'baseui/icon/triangle-right';
 import Upload from 'baseui/icon/upload';
 import Check from 'baseui/icon/check';
 
+import Websocket from 'react-websocket';
+
 import { getRap } from '../actions';
+
+import { HEARTBEAT_TO_PROGRESSBAR } from '../CONSTANTS';
+import { HEARTBEAT_WS_ENDPOINT } from '../CONSTANTS';
 
 require('./styles.scss')
 
@@ -19,7 +25,10 @@ class AudioRecorder extends Component {
       recordingStarted: false,
       recordingStopped: false,
       isProcessingBLOB: false,
-      rawInputBLOB: null
+      rawInputBLOB: null,
+      heartbeatUUID: "",
+      wsInterface: null,
+      heartbeatMsg: "Waiting for input..."
     }
   }
 
@@ -78,6 +87,11 @@ class AudioRecorder extends Component {
     this.props.getRap(this.state.rawInputBLOB);
   }
 
+  handleIncomingHeartbeat(data) {
+    let result = JSON.parse(data);
+    console.log(result)
+  }
+
   render() {
     const {
       blobURL,
@@ -91,6 +105,25 @@ class AudioRecorder extends Component {
     const recordBtn = recordingInSession ? true : false
     const downloadLink = recordingStopped ? "fa fa-download" : "fa disabled fa-download"
     
+    let wsInterface;
+    //websocket connection
+    if (this.props.heartbeatUUID) {
+      let uuid = this.props.heartbeatUUID.split("_")[1].split(".")[0];
+      wsInterface = <div class="progressbar-container">
+                      <ProgressBar
+                        value={HEARTBEAT_TO_PROGRESSBAR[this.state.heartbeatMsg]}
+                        successValue={100}
+                        getProgressLabel={(currentValue, successValue) =>
+                          this.state.heartbeatMsg
+                        }
+                        showLabel
+                      />
+                      <Websocket url={HEARTBEAT_WS_ENDPOINT+uuid} onMessage={this.handleIncomingHeartbeat.bind(this)}/>
+                    </div>
+    } else {
+      wsInterface = <div class="progressbar-container"></div>
+    }
+
     return (
       <div>
         <div id="project-wrapper">
@@ -137,6 +170,7 @@ class AudioRecorder extends Component {
             </div>
           </div>
         </div>
+        {wsInterface}
       </div>
     )
   }
@@ -144,7 +178,8 @@ class AudioRecorder extends Component {
 
 const mapStateToProps = (state) => {
   return {
-    isProcessingBLOB: state.isProcessingBLOB
+    isProcessingBLOB: state.isProcessingBLOB,
+    heartbeatUUID: state.heartbeatUUID
   }
 }
 

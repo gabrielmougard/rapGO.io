@@ -14,7 +14,7 @@ import (
 
 type OutputUUID struct {
 	Status int `json:'status'`
-	OutputUIID string `json:'outputUUID'`
+	OutputUUID string `json:'outputUUID'`
 }
 
 func UploadInputBLOB(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +36,7 @@ func UploadInputBLOB(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	res := OutputUUID{Status: 200, OutputUIID: filename}
+	res := OutputUUID{Status: 200, OutputUUID: filename}
 	js, err := json.Marshal(res)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

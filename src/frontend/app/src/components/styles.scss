@@ -76,7 +76,7 @@ body #project-wrapper {
     font-size: 2em;
   }
   body #project-wrapper #project-container #content #controls .column.active {
-    color: #9b59b6;
+    color: white;
   }
   body #project-wrapper #project-container #content #controls .column i {
     margin: 0 15px;
@@ -131,3 +131,11 @@ body #project-wrapper {
     text-decoration: underline;
     font-weight: bold;
   }
+.progressbar-container {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 30%;
+  padding-right: 30%;
+}
