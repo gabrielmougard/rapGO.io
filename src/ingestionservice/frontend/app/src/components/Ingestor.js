@@ -18,8 +18,6 @@ import {Textarea} from 'baseui/textarea';
 import { Tag } from "baseui/tag";
 import { FileUploader } from "baseui/file-uploader";
 
-import Gauge from 'react-svg-gauge';
-
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import GridList from '@material-ui/core/GridList';
@@ -33,8 +31,7 @@ import MetadataLoader from './MetadataLoader';
 import GaugeLoader from './GaugeLoader';
 
 //import { connect } from 'react-redux';
-
-import { INGESTOR_BUILD_VERSION } from "../CONSTANTS";
+import { BUCKET_LINK } from "../CONSTANTS";
 
 require('./styles.css')
 
@@ -46,8 +43,7 @@ class Ingestor extends Component {
       urlsDrawerTextAreaValue : "",
       urlsFileDescDrawer : false,
       rawfilesDrawer : false,
-      genreDrawer : false,
-      gaugeValue : 40
+      genreDrawer : false
     }
   }
 
@@ -153,7 +149,7 @@ class Ingestor extends Component {
 
       <StyledNavigationList $align={ALIGN.right}>
         <StyledNavigationItem>
-          <Button>To GCP bucket</Button>
+          <Button onClick={() => window.open(BUCKET_LINK, "_blank")}>To GCP bucket</Button>
         </StyledNavigationItem>
       </StyledNavigationList>
 
@@ -421,7 +417,8 @@ class Ingestor extends Component {
               </Button>
             </div>
           </div>
-          <Gauge value={this.state.gaugeValue} topLabelStyle={tLabelStyle} valueLabelStyle={labelStyle} width={400} height={320} color={colorHex} label="0.34Go/30Go consummed" valueFormatter={value => `${value}%`}/>
+          <Display4>Bucket Size : 38Mo</Display4>
+          <p>$0.026 Go/month</p>
         </div>
 
         <GridList cellHeight={180}>
