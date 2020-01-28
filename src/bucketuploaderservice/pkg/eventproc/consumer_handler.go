@@ -41,7 +41,7 @@ func HandleVoiceFile(bi *bucket.BucketInterface, heartBeatProducer sarama.AsyncP
 		log.Printf(filenameToBucket+" has been successfully uploaded to bucket storage.")
 
 		//Create & Emit to Kafka hearbeat topic according to content of event
-		message := &sarama.ProducerMessage{Topic: setting.ToHeartbeatTopic(), Value: sarama.StringEncoder(eventUUID+"_"+heartbeatDesc)}
+		message := &sarama.ProducerMessage{Topic: setting.ToHeartbeatTopic(), Key: sarama.StringEncoder(eventUUID), Value: sarama.StringEncoder(heartbeatDesc)}
 		select {
 		case heartBeatProducer.Input() <- message:
 			log.Println("heartbeat(@"+eventUUID+") sent : "+heartbeatDesc)

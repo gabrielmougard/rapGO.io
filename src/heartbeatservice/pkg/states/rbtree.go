@@ -2,7 +2,7 @@ package states
 
 import (
     "sync"
-
+    "fmt"
     "rapGO.io/src/heartbeatservice/pkg/setting"
 )
 // KeyComparison structure used as result of comparing two keys 
@@ -46,7 +46,7 @@ type rbNode struct {
     color byte
 	left, right *rbNode
 
-	descChan chan string
+	DescChan chan string
 }
 
 // RbTree structure
@@ -69,10 +69,10 @@ func newRbNode(key RbKey, heartbeatDesc string) *rbNode {
         key: key,
         heartbeatDesc: heartbeatDesc,
 		color: red,
-		descChan: make(chan string, setting.TotalHeartbeatNumber()), //how many heartbeats do we have for a rap generation ? ==> I counted that 6 is our max.
+		DescChan: make(chan string, setting.TotalHeartbeatNumber()), //how many heartbeats do we have for a rap generation ? ==> I counted that 6 is our max.
     }
 
-    result.descChan <- heartbeatDesc //write to channel
+    result.DescChan <- heartbeatDesc //write to channel
     return result
 }
 
@@ -237,8 +237,8 @@ func deleteMin(node *rbNode) *rbNode {
 }
 
 func (node *rbNode) GetDescChan() chan string {
-	if node.descChan != nil {
-		return node.descChan
+	if node.DescChan != nil {
+		return node.DescChan
 	} else {
 		return nil
 	}
@@ -325,10 +325,11 @@ func (tree *RbTree) GetNode(key RbKey) (*rbNode, bool) {
 
 //Change the value of a node
 func (tree *RbTree) EditDesc(key RbKey, newHeartbeatDesc string) {
-	if key != nil && tree.root != nil {
+    fmt.Println("EDITDESC : "+newHeartbeatDesc)
+    if key != nil && tree.root != nil {
 		node := tree.find(key)
 		if node != nil {
-			node.descChan <- newHeartbeatDesc
+			node.DescChan <- newHeartbeatDesc
 			node.heartbeatDesc = newHeartbeatDesc
 		}
 	}
@@ -356,6 +357,7 @@ func (tree *RbTree) Exists(key RbKey) bool {
 
 // Insert inserts the given key and value into the tree
 func (tree *RbTree) Insert(key RbKey, heartbeatDesc string) {
+    fmt.Println("INSERTNODE : "+heartbeatDesc)
     if key != nil {
         tree.version++
         tree.root = tree.insertNode(tree.root, key, heartbeatDesc);

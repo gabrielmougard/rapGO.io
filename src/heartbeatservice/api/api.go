@@ -2,7 +2,6 @@ package api
 
 import (
 	"log"
-	"fmt"
 	"time"
 	"net/http"
 
@@ -34,7 +33,7 @@ func RegisterTree(tree *states.RbTree) {
 }
 
 func SetupWebSocket(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("websocket route !")
+
 	vars := mux.Vars(r)
 	uuid := vars["uuid"]
 
@@ -47,56 +46,32 @@ func SetupWebSocket(w http.ResponseWriter, r *http.Request) {
 	//get the coresponding node in the tree
 	var wsChannel chan string
 
-	for {
-		statesTree.Mu.Lock()
-		key := states.StringKey(uuid)
+	key := states.StringKey(uuid)
+	for { //wait for synchronization with statehandler
+		//statesTree.Mu.Lock()
 		if node, ok := statesTree.GetNode(&key); ok {
 			wsChannel = node.GetDescChan()
-			fmt.Println("BERLUSCONI")
-			fmt.Println(wsChannel)
 			break
-		} else {
-			fmt.Println("TREE STATE [API]")
-			fmt.Println(&statesTree)
 		}
-		statesTree.Mu.Unlock()
+		//statesTree.Mu.Unlock()
 		time.Sleep(100 * time.Millisecond)
 	}
 
-	defer close(wsChannel)
-	
-	for {
+	heartbeatCount := 0
+	end := false
+	for ; !end ; {
 		select {
 		case heartbeat := <- wsChannel:
 			//write to websocket using the client
-			fmt.Println("Send heartbeat : "+heartbeat+" in webSocket")
-
 			payload := &Payload{Timestamp: time.Now().UTC().Format(time.UnixDate), Description: heartbeat}
 			if err := conn.WriteJSON(payload); err != nil {
 				log.Println(err)
 			}
-			log.Println("heartbeat sent successfully.")
-			
-			if isLastHeartbeat(heartbeat) {
-				break
+			heartbeatCount++
+			if heartbeatCount == setting.TotalHeartbeatNumber() {
+				statesTree.Delete(&key) //no need for the node now that all the heartbeats have been sent to the client. it also close the wsChannel.
+				end = true
 			}
 		}
-	}
-}
-
-func TestServer(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-    w.Write([]byte("{\"hello\": \"world\"}"))
-}
-
-func isLastHeartbeat(heartbeatDesc string) bool {
-	possibleHeartbeats := setting.LastHeartbeatDesc()
-
-	if heartbeatDesc == possibleHeartbeats[0] {
-		return true
-	} else if heartbeatDesc ==  possibleHeartbeats[1] {
-		return true
-	} else {
-		return false
 	}
 }

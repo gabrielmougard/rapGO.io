@@ -31,16 +31,10 @@ func main() {
 		//new server config
 		router := mux.NewRouter()
 		router.HandleFunc("/heartbeat/{uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}}", api.SetupWebSocket)
-		router.HandleFunc("/test", api.TestServer)
 		handler := cors.Default().Handler(router)
 		fmt.Println("Starting server on port 3002...")
 		http.ListenAndServe(":3002", handler)
-		//
-		// router := mux.NewRouter()
-		// router.HandleFunc("/heartbeat/{uuid:[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}}", api.SetupWebSocket)
-		// router.HandleFunc("/test", api.TestServer)
-		// fmt.Println("Starting server on port 3002...")
-		// http.ListenAndServe(":3002", nil)
+
 	}()
 
 	//Kafka
