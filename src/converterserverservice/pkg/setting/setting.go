@@ -52,6 +52,13 @@ func OutputPrefix() string {
 	}
 	return v
 }
+func OutputSuffix() string {
+	v, ok := os.LookupEnv("OUTPUT_SUFFIX")
+	if !ok {
+		panic(errors.New("the output suffix is not detected."))
+	}
+	return v
+}
 
 func BaseSuffix() string {
 	v, ok := os.LookupEnv("INPUT_SUFFIX")

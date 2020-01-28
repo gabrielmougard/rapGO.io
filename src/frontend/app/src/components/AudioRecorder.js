@@ -11,8 +11,11 @@ import Websocket from 'react-websocket';
 
 import { getRap } from '../actions';
 
-import { HEARTBEAT_TO_PROGRESSBAR } from '../CONSTANTS';
+import { NB_STEPS_HEARTBEATS } from '../CONSTANTS';
+import { HEARTBEAT_TRIGGER_DOWNLOAD } from '../CONSTANTS';
 import { HEARTBEAT_WS_ENDPOINT } from '../CONSTANTS';
+import { NON_CHANGING_HEARTBEAT } from '../CONSTANTS';
+import OutputLoader from './OutputLoader';
 
 require('./styles.scss')
 
@@ -28,7 +31,10 @@ class AudioRecorder extends Component {
       rawInputBLOB: null,
       heartbeatUUID: "",
       wsInterface: null,
-      heartbeatMsg: "Waiting for input..."
+      heartbeatMsg: "Waiting for input...",
+      progressbarValue: 0, 
+      deleteWsInterface: false,
+      svgLoaderEnabled: false
     }
   }
 
@@ -91,11 +97,22 @@ class AudioRecorder extends Component {
     let result = JSON.parse(data);
     console.log(result)
 
-    //update this.state.heartbeatMsg here
+    //update the progressBar
+    if (result != NON_CHANGING_HEARTBEAT) {
+      this.setState({progressbarValue: this.state.progressbarValue + 100/NB_STEPS_HEARTBEATS}) // the integer value
+      this.setState({heartbeatMsg: result}) // the label below
+    } else {
+      this.setState({heartbeatMsg: result}) // just change the label
 
+      //delete the wsInterface here
+      this.setState({deleteWsInterface: true})
+      //
+
+    }
     
-    if (HEARTBEAT_TO_PROGRESSBAR[result.heartbeatMsg] == 100) { // this is the last heartbeat
-      //we call saga to start downloading the generated output inside a media player component below our progress bar
+    if (result == HEARTBEAT_TRIGGER_DOWNLOAD) {
+      let uuid = this.props.heartbeatUUID.split("_")[1].split(".")[0];
+      this.props.downloadOutput(uuid)
     }
   }
 
@@ -113,12 +130,13 @@ class AudioRecorder extends Component {
     const downloadLink = recordingStopped ? "fa fa-download" : "fa disabled fa-download"
     
     let wsInterface;
+    let output;
     //websocket connection
-    if (this.props.heartbeatUUID) {
+    if (this.props.heartbeatUUID && !this.state.deleteWsInterface) {
       let uuid = this.props.heartbeatUUID.split("_")[1].split(".")[0];
       wsInterface = <div class="progressbar-container">
                       <ProgressBar
-                        value={HEARTBEAT_TO_PROGRESSBAR[this.state.heartbeatMsg]}
+                        value={this.state.progressbarValue}
                         successValue={100}
                         getProgressLabel={(currentValue, successValue) =>
                           this.state.heartbeatMsg
@@ -129,6 +147,16 @@ class AudioRecorder extends Component {
                     </div>
     } else {
       wsInterface = <div class="progressbar-container"></div>
+    }
+
+    if (this.state.svgLoaderEnabled) {
+      output = <div class="output-container">
+                  <OutputLoader />
+               </div>
+    } else if (!this.state.svgLoaderEnabled && this.state.outputLoaded) {
+
+    } else {
+      output = <div class="output-container"></div>
     }
 
     return (
@@ -193,6 +221,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     getRap: (inputBLOB) => { dispatch(getRap(inputBLOB)) },
+    downloadOutput: (uuid) => {dispatch(downloadOutput(uuid))}
   }
 }
 

@@ -43,6 +43,7 @@ func main() {
 	go fswatcher.Setup()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/upload", api.UploadInputBLOB)
+	mux.HandleFunc("/download", api.DownloadOutput)
 	handler := cors.Default().Handler(mux)
 	fmt.Println("Starting server on port 3001...")
 	http.ListenAndServe(":3001", handler)
