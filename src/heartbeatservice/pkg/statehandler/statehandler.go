@@ -21,19 +21,24 @@ func HandleHeartbeat(tree *states.RbTree, msg *sarama.ConsumerMessage) {
 		//key exists
 		if isLastHeartbeat(res) {
 			//delete this node since it's useless
+			tree.Delete(&key)
 		} else {
 			//Edit node value with the new heartbeatDesc
-
+			tree.EditDesc(&key, desc)
 		}
-
 	} else {
-		//key does not exits
+		//key does not exits so insert node
+		tree.Insert(&key, desc)
 	}
 	tree.Mu.Unlock()
 }
 
 func isLastHeartbeat(heartbeatDesc string) bool {
-	if heartbeatDesc == setting.LastHeartbeatDesc() {
+	possibleHeartbeats := setting.LastHeartbeatDesc()
+
+	if heartbeatDesc == possibleHeartbeats[0] {
+		return true
+	} else if heartbeatDesc ==  possibleHeartbeats[1] {
 		return true
 	} else {
 		return false

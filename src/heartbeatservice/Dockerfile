@@ -14,12 +14,22 @@ RUN go get github.com/Masterminds/glide
 # setup the working directory
 ENV PROJECT rapGO.io/src/heartbeatservice
 WORKDIR /go/src/$PROJECT
-ADD glide.yaml glide.yaml
-ADD glide.lock glide.lock
-# install dependencies
-RUN glide install
+
+### dependencies
+COPY vendor /go/src
+
+# in production, comment the line above and un-comment the lines below.
+#ADD glide.yaml glide.yaml
+#ADD glide.lock glide.lock
+## install dependencies
+#RUN glide install
+
+###############
+
 # add the source code
 COPY . .
+RUN rm -r vendor
+RUN ls
 RUN go build -o heartbeat
 # strip and compress the binary
 RUN strip --strip-unneeded heartbeat
@@ -38,8 +48,12 @@ RUN upx heartbeat
 #COPY --from=builder /go/src/rapGO.io/src/heartbeatservice/heartbeat .
 
 # ENV variables definition
-ENV LAST_HEARTBEAT_DESC output generated successfully
+ENV KAFKA_BROKER kafka:9093
+ENV KAFKA_TOPIC_TOHEARTBEAT toHeartbeat
+ENV KAFKA_TOPIC_TOBUCKET toBucket
 
+ENV LAST_HEARTBEAT_DESC Rap generated successfully !|Saving generated data to cloud...
+ENV TOTAL_HEARTBEAT_NUMBER 6
 #
 
 # run the binary

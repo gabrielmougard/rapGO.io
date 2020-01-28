@@ -11,8 +11,7 @@ import (
 	"rapGO.io/src/heartbeatservice/api"
 	"rapGO.io/src/heartbeatservice/pkg/setting"
 	"rapGO.io/src/heartbeatservice/pkg/states"
-
-
+	"rapGO.io/src/heartbeatservice/pkg/statehandler"
 
 )
 
@@ -34,6 +33,7 @@ func main() {
 	//Kafka
 	fmt.Println("Waiting for Kafka to setup...")
 	time.Sleep(60*time.Second) //Wait for the leader election in kafka cluster
+
 	config := sarama.NewConfig()
 	config.ClientID = "go-kafka-consumer"
 	config.Consumer.Return.Errors = true
@@ -57,7 +57,7 @@ func main() {
 			select {
 			case msg := <-consumer:
 				fmt.Println("Received messages", string(msg.Key), string(msg.Value))
-				go HandleHeartbeat(statesTree, msg)
+				go statehandler.HandleHeartbeat(statesTree, msg)
 			case consumerError := <-errors:
 				fmt.Println("Received consumerError ", string(consumerError.Topic), string(consumerError.Partition), consumerError.Err)
 				doneCh <- struct{}{}
@@ -74,9 +74,9 @@ func consumeHeartbeat(master sarama.Consumer) (chan *sarama.ConsumerMessage, cha
 
 	errors := make(chan *sarama.ConsumerError)
 	
-	if strings.Contains(heartbeatTopic, "__consumer_offsets") {
-		continue
-	}
+	//if strings.Contains(heartbeatTopic, "__consumer_offsets") {
+	//	continue
+	//}
 	partitions, _ := master.Partitions(heartbeatTopic)
     // this only consumes partition no 1, you would probably want to consume all partitions
 	consumer, err := master.ConsumePartition(heartbeatTopic, partitions[0], sarama.OffsetOldest)

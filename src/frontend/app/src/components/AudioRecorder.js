@@ -90,6 +90,13 @@ class AudioRecorder extends Component {
   handleIncomingHeartbeat(data) {
     let result = JSON.parse(data);
     console.log(result)
+
+    //update this.state.heartbeatMsg here
+
+    
+    if (HEARTBEAT_TO_PROGRESSBAR[result.heartbeatMsg] == 100) { // this is the last heartbeat
+      //we call saga to start downloading the generated output inside a media player component below our progress bar
+    }
   }
 
   render() {

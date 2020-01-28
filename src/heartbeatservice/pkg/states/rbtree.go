@@ -1,7 +1,9 @@
 package states
 
 import (
-	"sync"
+    "sync"
+
+    "rapGO.io/src/heartbeatservice/pkg/setting"
 )
 // KeyComparison structure used as result of comparing two keys 
 type KeyComparison int8
@@ -67,9 +69,10 @@ func newRbNode(key RbKey, heartbeatDesc string) *rbNode {
         key: key,
         heartbeatDesc: heartbeatDesc,
 		color: red,
-		descChan: make(chan string),
-	}
-	result.descChan <- heartbeatDesc //write to channel
+		descChan: make(chan string, setting.TotalHeartbeatNumber()), //how many heartbeats do we have for a rap generation ? ==> I counted that 6 is our max.
+    }
+
+    result.descChan <- heartbeatDesc //write to channel
     return result
 }
 

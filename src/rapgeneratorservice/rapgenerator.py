@@ -125,7 +125,7 @@ def processToCoreMsg(message, producer, storage_client):
     """
     Consume our kafka core message
     """
-    print("starting processing message "+str(message.value()))
+    print("Starting processing message "+str(message.value()))
     voiceUUID = str(message.value()).split("_")[1].split(".")[0]
 
     #create metadata folder

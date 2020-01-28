@@ -36,7 +36,7 @@ func HandleVoiceFile(bi *bucket.BucketInterface, heartBeatProducer sarama.AsyncP
 		err := bi.Upload(filenameToBucket)
 		if err != nil {
 			log.Printf("The filename %s couldn't be uploaded to storage.", filenameToBucket)
-			heartbeatDesc = "Internal error. The file "+filenameToBucket+" couldn't be uploaded to the storage"
+			heartbeatDesc = "Internal error. The file couldn't be uploaded to the storage."
 		}
 		log.Printf(filenameToBucket+" has been successfully uploaded to bucket storage.")
 

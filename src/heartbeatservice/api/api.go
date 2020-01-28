@@ -21,9 +21,9 @@ var upgrader = websocket.Upgrader{
     WriteBufferSize: 1024,
 }
 
-type payload struct {
-	timestamp   string
-	description string
+type Payload struct {
+	Timestamp   string `json:'timestamp'`
+	Description string `json:'description'`
 }
 
 func RegisterTree(tree *states.RbTree) {
@@ -31,6 +31,7 @@ func RegisterTree(tree *states.RbTree) {
 }
 
 func SetupWebSocket(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("websocket route !")
 	vars := mux.Vars(r)
 	uuid := vars["uuid"]
 
@@ -58,7 +59,7 @@ func SetupWebSocket(w http.ResponseWriter, r *http.Request) {
 			//write to websocket using the client
 			fmt.Println("Send heartbeat : "+heartbeat+" in webSocket")
 
-			payload := &payload{timestamp: time.Now().UTC().Format(time.UnixDate), description: heartbeat}
+			payload := &Payload{Timestamp: time.Now().UTC().Format(time.UnixDate), Description: heartbeat}
 			if err := conn.WriteJSON(payload); err != nil {
 				log.Println(err)
 			}
@@ -72,7 +73,11 @@ func SetupWebSocket(w http.ResponseWriter, r *http.Request) {
 }
 
 func isLastHeartbeat(heartbeatDesc string) bool {
-	if heartbeatDesc == setting.LastHeartbeatDesc() {
+	possibleHeartbeats := setting.LastHeartbeatDesc()
+
+	if heartbeatDesc == possibleHeartbeats[0] {
+		return true
+	} else if heartbeatDesc ==  possibleHeartbeats[1] {
 		return true
 	} else {
 		return false
