@@ -9,6 +9,7 @@ import (
 	"github.com/Shopify/sarama"
 
 	"rapGO.io/src/heartbeatservice/api"
+	"rapGO.io/src/heartbeatservice/api/cors"
 	"rapGO.io/src/heartbeatservice/pkg/setting"
 	"rapGO.io/src/heartbeatservice/pkg/states"
 	"rapGO.io/src/heartbeatservice/pkg/statehandler"
@@ -20,14 +21,26 @@ var statesTree *states.RbTree //global in-mem storage
 func init() {
 	//setup the states tree
 	statesTree = states.NewRbTree()
+	api.RegisterTree(statesTree)
+	statehandler.RegisterTree(statesTree)
 }
 func main() {
 	//API server
 	go func() {
+
+		//new server config
 		router := mux.NewRouter()
-		router.HandleFunc("/heartbeat/{uuid:[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}}", api.SetupWebSocket)
+		router.HandleFunc("/heartbeat/{uuid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}}", api.SetupWebSocket)
+		router.HandleFunc("/test", api.TestServer)
+		handler := cors.Default().Handler(router)
 		fmt.Println("Starting server on port 3002...")
-		http.ListenAndServe(":3002", nil)
+		http.ListenAndServe(":3002", handler)
+		//
+		// router := mux.NewRouter()
+		// router.HandleFunc("/heartbeat/{uuid:[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}}", api.SetupWebSocket)
+		// router.HandleFunc("/test", api.TestServer)
+		// fmt.Println("Starting server on port 3002...")
+		// http.ListenAndServe(":3002", nil)
 	}()
 
 	//Kafka
@@ -57,7 +70,7 @@ func main() {
 			select {
 			case msg := <-consumer:
 				fmt.Println("Received messages", string(msg.Key), string(msg.Value))
-				go statehandler.HandleHeartbeat(statesTree, msg)
+				go statehandler.HandleHeartbeat(msg)
 			case consumerError := <-errors:
 				fmt.Println("Received consumerError ", string(consumerError.Topic), string(consumerError.Partition), consumerError.Err)
 				doneCh <- struct{}{}
@@ -92,7 +105,7 @@ func consumeHeartbeat(master sarama.Consumer) (chan *sarama.ConsumerMessage, cha
 				errors <- consumerError
 				fmt.Println("consumerError: ", consumerError.Err)
 			case msg := <-consumer.Messages():
-				if topic == setting.ToBucketTopic() {
+				if topic == setting.ToHeartbeatTopic() {
 					consumers <- msg
 					fmt.Println("Got message on topic ", topic, msg.Value)
 				} 

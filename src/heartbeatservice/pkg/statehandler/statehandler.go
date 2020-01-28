@@ -1,36 +1,42 @@
 package statehandler
 
 import (
-
+	"fmt"
 	"rapGO.io/src/heartbeatservice/pkg/states"
 	"rapGO.io/src/heartbeatservice/pkg/setting"
 
 	"github.com/Shopify/sarama"
 )
+var statesTree *states.RbTree
 
-func HandleHeartbeat(tree *states.RbTree, msg *sarama.ConsumerMessage) {
+func RegisterTree(tree *states.RbTree) {
+	statesTree = tree
+}
+
+func HandleHeartbeat(msg *sarama.ConsumerMessage) {
 	//get the uuid to from the key
-
+	fmt.Println("TREE STATE [HANDLEHEATBEAT]")
+	fmt.Println(&statesTree)
 	uuid := string(msg.Key)
 	desc := string(msg.Value)
 
 	key := states.StringKey(uuid)
 	//lock
-	tree.Mu.Lock()
-	if res, ok := tree.Get(&key); ok {
+	statesTree.Mu.Lock()
+	if res, ok := statesTree.Get(&key); ok {
 		//key exists
 		if isLastHeartbeat(res) {
 			//delete this node since it's useless
-			tree.Delete(&key)
+			statesTree.Delete(&key)
 		} else {
 			//Edit node value with the new heartbeatDesc
-			tree.EditDesc(&key, desc)
+			statesTree.EditDesc(&key, desc)
 		}
 	} else {
 		//key does not exits so insert node
-		tree.Insert(&key, desc)
+		statesTree.Insert(&key, desc)
 	}
-	tree.Mu.Unlock()
+	statesTree.Mu.Unlock()
 }
 
 func isLastHeartbeat(heartbeatDesc string) bool {

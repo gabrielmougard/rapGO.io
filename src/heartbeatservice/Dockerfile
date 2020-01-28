@@ -1,4 +1,5 @@
-FROM golang:1.12-buster AS builder
+#FROM golang:1.12-buster AS builder
+FROM golang:1.12-buster
 # install xz
 RUN apt-get update && apt-get install -y \
     xz-utils \
@@ -16,25 +17,25 @@ ENV PROJECT rapGO.io/src/heartbeatservice
 WORKDIR /go/src/$PROJECT
 
 ### dependencies
-COPY vendor /go/src
 
 # in production, comment the line above and un-comment the lines below.
-#ADD glide.yaml glide.yaml
-#ADD glide.lock glide.lock
-## install dependencies
-#RUN glide install
+ADD glide.yaml glide.yaml
+ADD glide.lock glide.lock
+### install dependencies
+RUN glide install
 
 ###############
 
 # add the source code
 COPY . .
-RUN rm -r vendor
-RUN ls
+#RUN rm -r vendor
+#RUN ls
 RUN go build -o heartbeat
 # strip and compress the binary
 RUN strip --strip-unneeded heartbeat
 RUN upx heartbeat
-
+# expose port
+EXPOSE 3002
 # use a minimal alpine image
 #FROM alpine
 #RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*

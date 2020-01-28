@@ -83,21 +83,19 @@ services:
     container_name: rapgeneratorservice
     volumes:
       - "shared-tmp-volume:/data/tmp"
-  
-  #heartbeatservice:
-  #  build:
-  #    context: ../../src/heartbeatservice
-  #    dockerfile: Dockerfile
-  #  ports:
-  #    - "3002:3002" # this will be the communication port for webSocket protocol
-  #  depends_on:
-  #    - kafka
-  #    - zookeeper
-  #    - converterserver
-  #    - bucketuploader
-  #  container_name: heartbeatservice
-  #  volumes:
-  #    - "shared-tmp-volume:/data/tmp"
+
+  heartbeatservice:
+    build:
+      context: ../../src/heartbeatservice
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002" # this will be the communication port for webSocket protocol
+    depends_on:
+      - kafka
+      - zookeeper
+      - converterserver
+      - bucketuploader
+    container_name: heartbeatservice
 
 volumes:
   shared-tmp-volume:

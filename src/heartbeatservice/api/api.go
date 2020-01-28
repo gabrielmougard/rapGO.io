@@ -18,7 +18,10 @@ var statesTree *states.RbTree
 
 var upgrader = websocket.Upgrader{
     ReadBufferSize:  1024,
-    WriteBufferSize: 1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
 type Payload struct {
@@ -44,12 +47,21 @@ func SetupWebSocket(w http.ResponseWriter, r *http.Request) {
 	//get the coresponding node in the tree
 	var wsChannel chan string
 
-	statesTree.Mu.Lock()
-	key := states.StringKey(uuid)
-	if node, ok := statesTree.GetNode(&key); ok {
-		wsChannel = node.GetDescChan()
-	} 
-	statesTree.Mu.Unlock()
+	for {
+		statesTree.Mu.Lock()
+		key := states.StringKey(uuid)
+		if node, ok := statesTree.GetNode(&key); ok {
+			wsChannel = node.GetDescChan()
+			fmt.Println("BERLUSCONI")
+			fmt.Println(wsChannel)
+			break
+		} else {
+			fmt.Println("TREE STATE [API]")
+			fmt.Println(&statesTree)
+		}
+		statesTree.Mu.Unlock()
+		time.Sleep(100 * time.Millisecond)
+	}
 
 	defer close(wsChannel)
 	
@@ -70,6 +82,11 @@ func SetupWebSocket(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+}
+
+func TestServer(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+    w.Write([]byte("{\"hello\": \"world\"}"))
 }
 
 func isLastHeartbeat(heartbeatDesc string) bool {

@@ -17,6 +17,7 @@ function* fetchRap(action) {
                 'Content-Type': `multipart/form-data; boundary=${data._boundary}`,
             }
         });
+
         console.log(response)
         const { Status, OutputUUID } = response.data
         if (Status == 200 && OutputUUID) {
