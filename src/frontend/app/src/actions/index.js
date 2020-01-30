@@ -12,3 +12,18 @@ export const fetchRapEnded = (sucess,outputUUID = null) => ({
         outputUUID: outputUUID
     }
 })
+
+export const downloadOutput = (uuid) => ({
+    type: 'DOWNLOAD_OUTPUT',
+    payload: {
+        uuid: uuid
+    }
+})
+
+export const downloadEnded = (success, response = null) => ({
+    type: 'DOWNLOAD_ENDED',
+    payload: {
+        success: success,
+        response: response
+    }
+})

@@ -39,13 +39,13 @@ services:
     container_name: kafka
   
     # app part
-  frontendservice:
-    build: 
-      context: ../../src/frontend
-      dockerfile: Dockerfile
-    ports:
-      - "80:80"
-    container_name: frontend
+  #frontendservice:
+  #  build: 
+  #    context: ../../src/frontend
+  #    dockerfile: Dockerfile
+  #  ports:
+  #    - "80:80"
+  #  container_name: frontend
   
   converterserver:
     build:
