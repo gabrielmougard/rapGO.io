@@ -38,14 +38,14 @@ services:
      - /var/run/docker.sock:/var/run/docker.sock
     container_name: kafka
   
-    # app part
-  #frontendservice:
-  #  build: 
-  #    context: ../../src/frontend
-  #    dockerfile: Dockerfile
-  #  ports:
-  #    - "80:80"
-  #  container_name: frontend
+  # app part
+  frontendservice:
+    build: 
+      context: ../../src/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    container_name: frontend
   
   converterserver:
     build:

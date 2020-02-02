@@ -3,11 +3,6 @@ kind: Ingress
 metadata:
   name: rapgo-ingress
 spec:
-  tls:
-  - hosts:
-    - rapgo.io
-    - data.rapgo.io
-    secretName: rapgo-ingress-secret
   rules:
   - host: rapgo.io
     http:
