@@ -16,39 +16,25 @@ RUN go get github.com/Masterminds/glide
 ENV PROJECT rapGO.io/src/bucketuploaderservice
 WORKDIR /go/src/$PROJECT
 
-### dependencies
-COPY vendor /go/src
-
 # in production, comment the line above and un-comment the lines below.
-#ADD glide.yaml glide.yaml
-#ADD glide.lock glide.lock
+ADD glide.yaml glide.yaml
+ADD glide.lock glide.lock
 ### install dependencies
-#RUN glide install
+RUN glide install
 
 ###############
 
 # add the source code
 COPY . .
-RUN rm -r vendor
-RUN ls
+
 RUN go build -o bucketuploader
 # strip and compress the binary
 RUN strip --strip-unneeded bucketuploader
 RUN upx bucketuploader
 
-# use a minimal alpine image
-#FROM alpine
-#RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
-##create the TMP_FOLDER
-#RUN mkdir -p /data/tmp
-## set working directory
-#WORKDIR /root
-## copy some needed binaries
-#COPY --from=builder /usr/lib/pkgconfig /usr/lib/pkgconfig
-## copy the binary from builder
-#COPY --from=builder /go/src/rapGO.io/src/bucketuploaderservice/bucketuploader .
-## copy the private key for accessing the google cloud storage
-#COPY --from=builder /go/src/rapGO.io/src/bucketuploaderservice/keen-dispatch.json .
+FROM alpine as release
+
+COPY --from=builder /go/src/rapGO.io/src/bucketuploaderservice /bucketuploaderservice
 
 # define all the needed environment variables
 ENV INPUT_PREFIX input
@@ -67,7 +53,6 @@ ENV KAFKA_TOPIC_TOSTREAM toStream
 
 ENV STORAGE_PROJECT_ID tidy-hold-247521
 ENV STORAGE_BUCKET_NAME rapgo-bucket-2
-ENV GOOGLE_APPLICATION_CREDENTIALS /go/src/rapGO.io/src/bucketuploaderservice/rapgo-storage.json
+ENV GOOGLE_APPLICATION_CREDENTIALS /bucketuploaderservice/rapgo-storage.json
 
-# run the binary
-ENTRYPOINT ["./bucketuploader"]
+ENTRYPOINT ["/bucketuploaderservice"]

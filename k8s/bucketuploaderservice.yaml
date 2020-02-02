@@ -1,17 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rapgenerator-deployment
+  name: bucketuploader-deployment
 spec:
   selector:
     matchLabels:
-      app: rapgenerator-deployment
+      app: bucketuploader-deployment
   template:
     metadata:
       labels:
-        app: rapgenerator-deployment
+        app: bucketuploader-deployment
     spec:
       containers:
         - name: server
-          image: gabrielmougard/rapserv:alpha
-  
+          image: gabrielmougard/bucketserv:alpha

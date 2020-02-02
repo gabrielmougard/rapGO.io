@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+spec:
+  selector:
+    matchlabels:
+      app: frontend-deployment
+  template:
+    metadata:
+      labels:
+        app: frontend-deployment
+    spec:
+      containers:
+      - name: frontend-deployment
+        image: rapgoio/frontend:alpha
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  type: NodePort
+  selector:
+    app: frontend-deployment
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80

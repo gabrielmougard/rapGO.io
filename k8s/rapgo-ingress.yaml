@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: rapgo-ingress
+spec:
+  tls:
+  - hosts:
+    - rapgo.io
+    - data.rapgo.io
+    secretName: rapgo-ingress-secret
+  rules:
+  - host: rapgo.io
+    http:
+      paths:
+      - backend:
+          serviceName: app-frontend-service
+          servicePort: 80
+  - host: data.rapgo.io
+    http:
+      paths:
+      - backend:
+          serviceName: ingest-frontend-service
+          servicePort: 80

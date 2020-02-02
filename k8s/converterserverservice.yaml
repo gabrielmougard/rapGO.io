@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: converterserver-deployment
+spec:
+  selector:
+    matchLabels:
+      app: converterserver-deployment
+  template:
+    metadata:
+      labels:
+        app: converterserver-deployment
+    spec:
+      containers:
+        - name: converterserver
+          image: gabrielmougard/convertserv:alpha
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: converterserver-service
+spec:
+  type: NodePort
+  selector:
+    app: converterserver-deployment
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3001
