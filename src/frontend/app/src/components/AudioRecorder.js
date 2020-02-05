@@ -6,6 +6,7 @@ import {ProgressBar} from 'baseui/progress-bar';
 import TriangleRight from 'baseui/icon/triangle-right';
 import Upload from 'baseui/icon/upload';
 import Check from 'baseui/icon/check';
+import { Display4 } from 'baseui/typography';
 
 import Websocket from 'react-websocket';
 
@@ -153,12 +154,10 @@ class AudioRecorder extends Component {
 
     //svg loader
     if (this.state.svgLoaderEnabled && !this.state.outputLoaded) {
-      console.log("BERLUSCONI1")
       output = <div class="output-container">
                   <OutputLoader />
                </div>
     } else if (this.props.outputResponse && this.state.svgLoaderEnabled) {
-      console.log("BERLUSCONI2")
       console.log(this.props.outputResponse)
       output = <div class="output-container">
                  <OutputPlayer response={this.props.outputResponse}/>
@@ -171,13 +170,12 @@ class AudioRecorder extends Component {
       <div>
         <div id="project-wrapper">
           <div id="project-container">
-            <div id="overlay" />
+          <Display4>RapGO.io - generate a rap with your voice !</Display4>
             <div id="content">
-              <h2>RapGO.io - generate a rap with your voice !</h2>
               <ReactMic
                 className="oscilloscope"
                 record={isRecording}
-                backgroundColor="#333333"
+                backgroundColor="white"
                 visualSetting="sinewave"
                 audioBitsPerSecond={128000}
                 onStop={this.onStop}
@@ -192,19 +190,20 @@ class AudioRecorder extends Component {
                 {!recordingInSession && <div id="scrim" />}
               </div>
               <div id="controls">
-
-                <Button isLoading={recordBtn} onClick={this.startRecording} startEnhancer={() => <TriangleRight size={30} />}>
-                  Start Recording
-                </Button>
-                <span />
-                <Button onClick={this.stopRecording} startEnhancer={() => <Check size={30} />}>
-                  Stop Recording
-                </Button>
-                
-                <div className="column download">
+                <div className="column-control">
+                  <Button isLoading={recordBtn} onClick={this.startRecording} startEnhancer={() => <TriangleRight size={30} />}>
+                    Start
+                  </Button>
+                </div>
+                <div className="column-control">
+                  <Button onClick={this.stopRecording} startEnhancer={() => <Check size={30} />}>
+                    Stop
+                  </Button>
+                </div>
+                <div className="column-control">
                   <Button onClick={this.sendBLOB} endEnhancer={() => <Upload size={30} />}>
-                    Generate !
-                </Button>
+                    Generate
+                  </Button>
                 </div>
               </div>
             </div>
@@ -217,6 +216,16 @@ class AudioRecorder extends Component {
           <div class="progressbar-container">
           <ProgressBar
             value={this.state.progressbarValue}
+            overrides={{
+              Label: {
+                style: ({ $theme }) => {
+                  return {  
+                    outline: `${$theme.colors.mono100} solid`,
+                    backgroundColor: $theme.colors.mono100
+                  };
+                }
+              }
+            }}
             successValue={100}
             getProgressLabel={(currentValue, successValue) => this.state.heartbeatMsg}
             showLabel
