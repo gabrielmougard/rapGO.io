@@ -112,8 +112,8 @@ class OutputPlayer extends Component {
                 <h4>Result : <small className="text-muted">(still alpha version so it's far from being perfect)</small></h4>
 
                 <div className="bars-wrapper">
-                  <canvas className="frequency-bars" width="512" height="100"></canvas>
-                  <canvas className="sinewave" width="512" height="100"></canvas>
+                  <canvas className="frequency-bars" width="512" height="150"></canvas>
+                  <canvas className="sinewave" width="512" height="150"></canvas>
                 </div>
 
                 <div className="player mt-4">

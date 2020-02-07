@@ -33,16 +33,26 @@
   display: none;
 }
 .player-volume-control .input-range__slider {
-  background: #ff5722;
-  border: 1px solid #ff5722;
+  background: #0096ef;
+  border: 1px solid #0096ef;
 }
 
 .player-volume-control .input-range__track--active {
-  background: #ff5722;
+  background: #0096ef;
 }
 
 .bars-wrapper {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  position: relative;
+  z-index: 2;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  overflow: hidden;
+  -webkit-box-shadow: 0px 0px 15px -1px rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: 0px 0px 15px -1px rgba(0, 0, 0, 0.5);
+  box-shadow: 0px 0px -1px 15px rgba(0, 0, 0, 0.5);
 }

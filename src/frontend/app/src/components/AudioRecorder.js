@@ -220,8 +220,7 @@ class AudioRecorder extends Component {
               Label: {
                 style: ({ $theme }) => {
                   return {  
-                    outline: `${$theme.colors.mono100} solid`,
-                    backgroundColor: $theme.colors.mono100
+                    outline: `${$theme.colors.mono100} solid`
                   };
                 }
               }
