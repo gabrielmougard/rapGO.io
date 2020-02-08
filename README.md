@@ -13,3 +13,18 @@ To learn more about the architecture of rapGO.io, please refer to the [docs](/do
 ## Demo
 
 The demo (available [here](https://drive.google.com/file/d/1XtkA3sAqpnCYaEMn2g3RyA2EgFZA9w-q/view?usp=sharing)) ha been tested with the `test/alpha` version on docker-compose. This is very far from being perfect (especially the core algorithm), but the global infrastructure is working.
+
+For the ingestion engine, wa can have a idea of what it will look like on this [video](https://drive.google.com/file/d/1oq8C7PLc_7nMztTs38DcD6P16b-raWFx/view?usp=sharing). I'm still working on it and also on the ingestion service backend.
+
+## Kubernetes deployment on GKE & images repository
+The docker images used for this project are :
+
+* `rapgoio/frontend:alpha`
+* `rapgoio/bucketserv:alpha`
+* `rapgoio/convertserv:alpha`
+* `rapgoio/heartbeatserv:alpha`
+* `rapgoio/rapserv:alpha`
+
+For the ingestion engine, the available images are :
+
+* `rapgoio/ingest-frontend:alpha`
