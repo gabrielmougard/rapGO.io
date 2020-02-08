@@ -9,3 +9,7 @@ powered by several languages like Go, C (coming soon for the rapgenration servic
 For now, the `src/rapgeneratorservice/lib` which is the core of the application is a bit simple and the results are very far from being audible. However, I'm improving this core library over the time to create a better user experience.
 
 To learn more about the architecture of rapGO.io, please refer to the [docs](/docs/README.md) section.
+
+## Demo
+
+The demo (available [here](https://drive.google.com/file/d/1XtkA3sAqpnCYaEMn2g3RyA2EgFZA9w-q/view?usp=sharing)) ha been tested with the `test/alpha` version on docker-compose. This is very far from being perfect (especially the core algorithm), but the global infrastructure is working.

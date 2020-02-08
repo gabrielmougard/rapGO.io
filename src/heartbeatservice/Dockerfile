@@ -15,20 +15,20 @@ RUN go get github.com/Masterminds/glide
 # setup the working directory
 ENV PROJECT rapGO.io/src/heartbeatservice
 WORKDIR /go/src/$PROJECT
-
+COPY vendor /go/src
 ### dependencies
 
 # in production, comment the line above and un-comment the lines below.
-ADD glide.yaml glide.yaml
-ADD glide.lock glide.lock
-### install dependencies
-RUN glide install
+#ADD glide.yaml glide.yaml
+#ADD glide.lock glide.lock
+#### install dependencies
+#RUN glide install
 
 ###############
 
 # add the source code
 COPY . .
-#RUN rm -r vendor
+RUN rm -r vendor
 #RUN ls
 RUN go build -o heartbeat
 # strip and compress the binary

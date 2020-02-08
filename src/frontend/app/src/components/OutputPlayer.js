@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import InputRange from 'react-input-range';
-import 'react-input-range/lib/css/index.css'
+import 'react-input-range/lib/css/index.css';
+import {Button} from 'baseui/button';
+import TriangleRight from 'baseui/icon/triangle-right';
 import { loadRawData, getAudioContext } from '../lib/outputDecoder';
 
 require('./stylePlayer.scss')
@@ -46,7 +48,7 @@ class OutputPlayer extends Component {
                 const newPlayer = await loadRawData(this.props.response.data, 
                     { frequencyC, sinewaveC }, 
                     { fillStyle: 'rgb(250, 250, 250)', // background
-                      strokeStyle: 'rgb(251, 89, 17)', // line color
+                      strokeStyle: 'rgb(0, 150, 239)', // line color
                       lineWidth: 1,
                       fftSize: 16384 //delization of bars from 1024 to 32768
                     });
@@ -130,15 +132,18 @@ class OutputPlayer extends Component {
                   <div className="player-controls mt-2">
 
                     <div>{this.state.loading && <i className="fas fa-spinner fa-spin"></i>}</div>
-
-                    <button
-                      type="button"
-                      className="btn btn-warning"
-                      onClick={this.state.playState === 'play' ? this.onPlayBtnClick : this.onStopBtnClick}
-                      disabled={this.state.loading}>
-                      <i className={`fas fa-${this.state.playState}`}></i>
-                    </button>
-
+                    <Button disabled={this.state.loading} onClick={this.state.playState === 'play' ? this.onPlayBtnClick : this.onStopBtnClick} startEnhancer={() => <TriangleRight size={30} />} overrides={{
+                      BaseButton: {
+                        style: ({ $theme }) => {
+                          return {
+                            outline: `${$theme.colors.accent400} solid`,
+                            backgroundColor: $theme.colors.accent400
+                          };
+                        }
+                      }
+                    }}>
+                      Play
+                    </Button>
                     <div className="player-volume-control">
                       <i onClick={() => this.onVolumeChange(0)} className="fas fa-volume-down"></i>
                       <div className="range-select">
